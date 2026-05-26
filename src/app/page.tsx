@@ -61,6 +61,9 @@ export default function Home() {
   const [completedAM, setCompletedAM] = useState<boolean>(false);
   const [completedPM, setCompletedPM] = useState<boolean>(false);
   
+  // Theme state
+  const [theme, setTheme] = useState<string>("Midnight Jade");
+
   // Profile dropdown state
   const [showProfileDropdown, setShowProfileDropdown] = useState<boolean>(false);
 
@@ -115,6 +118,12 @@ export default function Home() {
       setCycleSync(parsed.hormoneSync || false);
       setClimateSim(parsed.climateAdapt ? "Seoul" : "Seoul");
     }
+
+    // Load active theme
+    const savedTheme = localStorage.getItem("rosevia_theme");
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
   }, []);
 
   const handleLogout = () => {
@@ -125,6 +134,7 @@ export default function Home() {
     localStorage.removeItem("rosevia_journal_log");
     localStorage.removeItem("rosevia_reminders");
     localStorage.removeItem("rosevia_system_toggles");
+    localStorage.removeItem("rosevia_theme");
     window.location.reload();
   };
 
@@ -135,6 +145,42 @@ export default function Home() {
       </div>
     );
   }
+
+  // Dynamic Theme Styling Classes
+  const getThemeClasses = () => {
+    switch (theme) {
+      case "Polished Obsidian":
+        return {
+          bg: "bg-black text-[#E6E8E6]",
+          card: "bg-neutral-950/80 border border-neutral-800 shadow-[0_4px_25px_rgba(0,0,0,0.85)]",
+          accent: "text-neutral-400",
+          gold: "text-rosevia-gold",
+          button: "bg-neutral-900 border border-neutral-700 hover:border-rosevia-gold text-rosevia-charcoal",
+          glow: "border-rosevia-gold/50 shadow-[0_0_15px_rgba(212,175,55,0.06)]"
+        };
+      case "Liquid Gold Premium":
+        return {
+          bg: "bg-[#060D0B] text-rosevia-charcoal",
+          card: "bg-[#111C18]/85 border border-rosevia-gold/50 shadow-[0_4px_30px_rgba(212,175,55,0.12)]",
+          accent: "text-rosevia-rose",
+          gold: "text-rosevia-gold",
+          button: "bg-rosevia-gold text-rosevia-cream hover:bg-rosevia-rose",
+          glow: "border-rosevia-gold/75 shadow-[0_0_20px_rgba(212,175,55,0.2)]"
+        };
+      case "Midnight Jade":
+      default:
+        return {
+          bg: "bg-rosevia-cream text-rosevia-charcoal",
+          card: "glass-card bg-rosevia-sand/70 border border-rosevia-rose/25",
+          accent: "text-rosevia-clay",
+          gold: "text-rosevia-gold",
+          button: "bg-rosevia-clay text-rosevia-cream hover:bg-rosevia-gold",
+          glow: "border-rosevia-rose/30 shadow-xs"
+        };
+    }
+  };
+
+  const currentTheme = getThemeClasses();
 
   // 1. GORGEOUS LANDING SPLASH IF NOT ONBOARDED (DARK APOTHECARY AESTHETIC)
   if (!profile || !routine) {
@@ -275,22 +321,22 @@ export default function Home() {
   const env = getEnvironmentalTips();
 
   return (
-    <div className="min-h-screen bg-rosevia-cream text-rosevia-charcoal pb-28 select-none">
+    <div className={`min-h-screen ${currentTheme.bg} pb-28 select-none transition-colors duration-500`}>
       
       {/* Header Profile Panel */}
       <div className="max-w-4xl mx-auto px-4 pt-6 md:pt-10 flex flex-col space-y-6">
         <header className="flex justify-between items-start relative">
           <div>
             <h1 className="text-xs tracking-widest font-bold text-rosevia-clay uppercase">Welcome to Your Path</h1>
-            <p className="text-2xl md:text-3xl font-serif text-rosevia-charcoal tracking-tight font-light mt-1">
-              Welcome back, <span className="italic text-rosevia-gold font-normal">Ralein.</span>
+            <p className="text-2xl md:text-3xl font-serif tracking-tight font-light mt-1">
+              Welcome back, <span className={`italic ${currentTheme.gold} font-normal`}>Ralein.</span>
             </p>
           </div>
 
           <div className="flex items-center space-x-3 shrink-0">
             {/* Streak Badge with premium warm gold glow */}
             <div className="flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-rosevia-rose/20 border border-rosevia-rose/30 shadow-sm hover:shadow transition-all duration-300">
-              <Flame size={14} className="text-rosevia-gold fill-rosevia-gold animate-bounce mr-0.5" />
+              <Flame size={14} className={`${currentTheme.gold} fill-rosevia-gold animate-bounce mr-0.5`} />
               <span className="text-[10px] font-bold text-rosevia-clay">{streak} Day Streak</span>
             </div>
 
@@ -298,7 +344,7 @@ export default function Home() {
             <div className="relative">
               <button 
                 onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                className="w-10 h-10 rounded-full bg-gradient-to-tr from-rosevia-gold/30 to-rosevia-rose/30 border border-rosevia-gold/50 flex items-center justify-center font-serif text-xs font-bold text-rosevia-gold hover:shadow-[0_0_12px_rgba(212,175,55,0.3)] transition-all cursor-pointer"
+                className={`w-10 h-10 rounded-full bg-gradient-to-tr from-rosevia-gold/30 to-rosevia-rose/30 border ${currentTheme.gold === "text-rosevia-gold" ? "border-rosevia-gold/50 text-rosevia-gold" : "border-neutral-500 text-neutral-400"} flex items-center justify-center font-serif text-xs font-bold hover:shadow-lg transition-all cursor-pointer`}
               >
                 RN
               </button>
@@ -307,26 +353,26 @@ export default function Home() {
               {showProfileDropdown && (
                 <div className="absolute right-0 mt-2 w-64 glass-panel rounded-2xl p-4 shadow-xl z-50 animate-fade-in space-y-4">
                   <div className="border-b border-rosevia-rose/20 pb-3">
-                    <p className="text-xs font-bold text-rosevia-charcoal leading-none">Ralein's Skincare Profile</p>
-                    <span className="text-[8px] text-rosevia-gold uppercase tracking-wider font-bold block mt-1">Clinical Skin Metrics</span>
+                    <p className="text-xs font-bold leading-none">Ralein's Skincare Profile</p>
+                    <span className={`text-[8px] ${currentTheme.gold} uppercase tracking-wider font-bold block mt-1`}>Clinical Skin Metrics</span>
                   </div>
                   
-                  <div className="space-y-2 text-[10px] font-medium text-rosevia-clay">
+                  <div className={`space-y-2 text-[10px] font-medium ${currentTheme.accent}`}>
                     <div className="flex justify-between">
                       <span className="font-semibold text-rosevia-clay/60">SKIN TYPE</span>
-                      <span className="font-bold text-rosevia-charcoal">{profile.skinType}</span>
+                      <span className="font-bold">{profile.skinType}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-semibold text-rosevia-clay/60">MAIN CONCERN</span>
-                      <span className="font-bold text-rosevia-charcoal">{profile.concerns[0]}</span>
+                      <span className="font-bold">{profile.concerns[0]}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-semibold text-rosevia-clay/60">EXPERIENCE</span>
-                      <span className="font-bold text-rosevia-charcoal">{profile.experience}</span>
+                      <span className="font-bold">{profile.experience}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-semibold text-rosevia-clay/60">AGE GROUP</span>
-                      <span className="font-bold text-rosevia-charcoal">{profile.age}</span>
+                      <span className="font-bold">{profile.age}</span>
                     </div>
                   </div>
 
@@ -345,42 +391,42 @@ export default function Home() {
         </header>
 
         {/* Current Active Cycle Info Card */}
-        <div className="glass-card p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm relative overflow-hidden">
+        <div className={`${currentTheme.card} p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm relative overflow-hidden`}>
           <div className="absolute top-[-10%] right-[-5%] w-[30%] h-[120%] bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none transform rotate-12" />
           <div className="space-y-1">
             <span className="text-[9px] tracking-widest font-bold uppercase text-rosevia-gold px-2.5 py-1 bg-rosevia-green border border-rosevia-rose/30 rounded-md shadow-xs">
               Active Cycle
             </span>
-            <h2 className="text-xl font-serif text-rosevia-clay mt-2.5 font-bold">
+            <h2 className={`text-xl font-serif ${currentTheme.accent} mt-2.5 font-bold`}>
               {routine.routineName}
             </h2>
-            <p className="text-xs text-rosevia-clay/85 mt-1 leading-relaxed max-w-xl font-medium">
+            <p className={`text-xs ${currentTheme.accent} mt-1 leading-relaxed max-w-xl font-medium`}>
               Focus: {routine.focus}
             </p>
           </div>
           <div className="flex items-center space-x-4 border-t md:border-t-0 md:border-l border-rosevia-rose/20 pt-3 md:pt-0 md:pl-6 shrink-0 w-full md:w-auto">
             <div className="text-center">
               <p className="text-[9px] tracking-widest uppercase font-bold text-rosevia-clay/55">Skin Type</p>
-              <p className="text-xs font-bold text-rosevia-gold mt-0.5">{profile.skinType}</p>
+              <p className={`text-xs font-bold ${currentTheme.gold} mt-0.5`}>{profile.skinType}</p>
             </div>
             <div className="h-6 w-px bg-rosevia-rose/25" />
             <div className="text-center">
               <p className="text-[9px] tracking-widest uppercase font-bold text-rosevia-clay/55">Goal</p>
-              <p className="text-xs font-bold text-rosevia-gold mt-0.5">{profile.concerns[0]}</p>
+              <p className={`text-xs font-bold ${currentTheme.gold} mt-0.5`}>{profile.concerns[0]}</p>
             </div>
           </div>
         </div>
 
         {/* Dynamic Scheduled Reminder Alarms Widget */}
-        <div className="glass-card p-5 space-y-4 shadow-sm relative overflow-hidden">
+        <div className={`${currentTheme.card} p-5 space-y-4 shadow-sm relative overflow-hidden`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Clock size={16} className="text-rosevia-gold animate-pulse" />
-              <h3 className="text-xs font-semibold tracking-widest uppercase text-rosevia-clay">Skincare Layer Alarms</h3>
+              <Clock size={16} className={`${currentTheme.gold} animate-pulse`} />
+              <h3 className={`text-xs font-semibold tracking-widest uppercase ${currentTheme.accent}`}>Skincare Layer Alarms</h3>
             </div>
             <button 
               onClick={() => navigateTo("/settings")}
-              className="text-[9px] font-bold text-rosevia-gold tracking-wider uppercase hover:underline flex items-center"
+              className={`text-[9px] font-bold ${currentTheme.gold} tracking-wider uppercase hover:underline flex items-center`}
             >
               Configure Alarms <Settings size={10} className="ml-1" />
             </button>
@@ -482,11 +528,11 @@ export default function Home() {
           </div>
 
           {/* 2. Hormonal Cycle Sync Widget with Elegant Biological Dial */}
-          <div className="glass-card p-6 flex flex-col justify-between space-y-4 shadow-sm">
+          <div className={`${currentTheme.card} p-6 flex flex-col justify-between space-y-4 shadow-sm`}>
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-2">
                 <Heart size={16} className="text-rosevia-clay" />
-                <h3 className="text-xs font-bold tracking-widest uppercase text-rosevia-clay">Hormonal Sync</h3>
+                <h3 className={`text-xs font-bold tracking-widest uppercase ${currentTheme.accent}`}>Hormonal Sync</h3>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input 
@@ -596,7 +642,7 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           {/* AM Routine Checklist */}
-          <div className="glass-card p-6 flex flex-col justify-between space-y-5 shadow-sm">
+          <div className={`${currentTheme.card} p-6 flex flex-col justify-between space-y-5 shadow-sm`}>
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-2">
                 <Sun size={18} className="text-rosevia-gold animate-spin duration-10000" />
@@ -639,7 +685,7 @@ export default function Home() {
             ) : (
               <button
                 onClick={() => triggerCompletion("am")}
-                className="w-full py-4 rounded-xl bg-rosevia-gold text-rosevia-cream text-xs tracking-widest font-bold uppercase hover:bg-rosevia-rose transition-all shadow hover:shadow-md duration-300 cursor-pointer flex items-center justify-center"
+                className={`w-full py-4 rounded-xl text-rosevia-cream text-xs tracking-widest font-bold uppercase shadow hover:shadow-md duration-300 cursor-pointer flex items-center justify-center ${currentTheme.button}`}
               >
                 Log AM Completed <Check size={14} className="ml-2 stroke-[3]" />
               </button>
@@ -647,7 +693,7 @@ export default function Home() {
           </div>
 
           {/* PM Routine Checklist */}
-          <div className="glass-card p-6 flex flex-col justify-between space-y-5 shadow-sm">
+          <div className={`${currentTheme.card} p-6 flex flex-col justify-between space-y-5 shadow-sm`}>
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-2">
                 <Moon size={18} className="text-rosevia-clay" />
@@ -695,7 +741,7 @@ export default function Home() {
             ) : (
               <button
                 onClick={() => triggerCompletion("pm")}
-                className="w-full py-4 rounded-xl bg-rosevia-gold text-rosevia-cream text-xs tracking-widest font-bold uppercase hover:bg-rosevia-rose transition-all shadow hover:shadow-md duration-300 cursor-pointer flex items-center justify-center"
+                className={`w-full py-4 rounded-xl text-rosevia-cream text-xs tracking-widest font-bold uppercase shadow hover:shadow-md duration-300 cursor-pointer flex items-center justify-center ${currentTheme.button}`}
               >
                 Log PM Completed <Check size={14} className="ml-2 stroke-[3]" />
               </button>
@@ -705,7 +751,7 @@ export default function Home() {
         </div>
 
         {/* Skincare Coaching Tips Panel */}
-        <div className="glass-card p-6 shadow-sm">
+        <div className={`${currentTheme.card} p-6 shadow-sm`}>
           <h4 className="text-xs font-bold tracking-widest uppercase text-rosevia-clay mb-3">Skin Coaching Tips</h4>
           <div className="space-y-2">
             {routine.tips.map((tip, idx) => (

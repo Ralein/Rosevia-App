@@ -10,7 +10,6 @@ import {
   BookOpen, 
   Clock, 
   Bell, 
-  ShieldAlert, 
   MapPin, 
   Heart,
   RefreshCw,
@@ -26,7 +25,7 @@ interface Reminders {
   moistTimeAM: string;
   moistTimePM: string;
   spfTime: string;
-  spfInterval: number; // in hours
+  spfInterval: number;
 }
 
 export default function SkincareSettings() {
@@ -77,14 +76,30 @@ export default function SkincareSettings() {
     if (savedToggles) {
       setToggles(JSON.parse(savedToggles));
     }
+
+    // Load active theme
+    const savedTheme = localStorage.getItem("rosevia_theme");
+    if (savedTheme) {
+      setActiveThemeVariant(savedTheme);
+    }
   }, []);
+
+  const handleThemeChange = (themeName: string) => {
+    setActiveThemeVariant(themeName);
+    localStorage.setItem("rosevia_theme", themeName);
+  };
 
   const saveSettings = () => {
     localStorage.setItem("rosevia_reminders", JSON.stringify(reminders));
     localStorage.setItem("rosevia_system_toggles", JSON.stringify(toggles));
+    localStorage.setItem("rosevia_theme", activeThemeVariant);
     
     setSaveStatus("SAVED SUCCESSFULLY");
-    setTimeout(() => setSaveStatus(null), 2500);
+    setTimeout(() => {
+      setSaveStatus(null);
+      // Force page reload so theme propagates instantly to body and wrappers
+      window.location.reload();
+    }, 1000);
   };
 
   const handleLogout = () => {
@@ -95,6 +110,7 @@ export default function SkincareSettings() {
     localStorage.removeItem("rosevia_journal_log");
     localStorage.removeItem("rosevia_reminders");
     localStorage.removeItem("rosevia_system_toggles");
+    localStorage.removeItem("rosevia_theme");
     navigateTo("/");
   };
 
@@ -109,37 +125,73 @@ export default function SkincareSettings() {
     );
   }
 
+  // Dynamic Theme Styling Classes
+  const getThemeClasses = () => {
+    switch (activeThemeVariant) {
+      case "Polished Obsidian":
+        return {
+          bg: "bg-black text-[#E6E8E6]",
+          card: "bg-neutral-950/80 border border-neutral-800 shadow-[0_4px_25px_rgba(0,0,0,0.85)]",
+          accent: "text-neutral-400",
+          gold: "text-rosevia-gold",
+          button: "bg-neutral-900 border border-neutral-700 hover:border-rosevia-gold text-rosevia-charcoal",
+          glow: "border-rosevia-gold/50 shadow-[0_0_15px_rgba(212,175,55,0.06)]"
+        };
+      case "Liquid Gold Premium":
+        return {
+          bg: "bg-[#060D0B] text-rosevia-charcoal",
+          card: "bg-[#111C18]/85 border border-rosevia-gold/50 shadow-[0_4px_30px_rgba(212,175,55,0.12)]",
+          accent: "text-rosevia-rose",
+          gold: "text-rosevia-gold",
+          button: "bg-rosevia-gold text-rosevia-cream hover:bg-rosevia-rose",
+          glow: "border-rosevia-gold/75 shadow-[0_0_20px_rgba(212,175,55,0.2)]"
+        };
+      case "Midnight Jade":
+      default:
+        return {
+          bg: "bg-rosevia-cream text-rosevia-charcoal",
+          card: "glass-card bg-rosevia-sand/70 border border-rosevia-rose/25",
+          accent: "text-rosevia-clay",
+          gold: "text-rosevia-gold",
+          button: "bg-rosevia-clay text-rosevia-cream hover:bg-rosevia-gold",
+          glow: "border-rosevia-rose/30 shadow-xs"
+        };
+    }
+  };
+
+  const currentTheme = getThemeClasses();
+
   return (
-    <div className="min-h-screen bg-rosevia-cream text-rosevia-charcoal pb-28 select-none">
+    <div className={`min-h-screen ${currentTheme.bg} pb-28 select-none transition-colors duration-500`}>
       <div className="max-w-4xl mx-auto px-4 pt-6 md:pt-10 flex flex-col space-y-6 animate-fade-in">
         
         {/* Header Title */}
         <header className="flex justify-between items-start">
           <div>
             <h1 className="text-xs tracking-widest font-bold text-rosevia-clay uppercase">Skincare System Preferences</h1>
-            <p className="text-2xl md:text-3xl font-serif text-rosevia-charcoal tracking-tight font-light mt-1">
-              Personalized Settings & <span className="italic text-rosevia-gold font-normal">Reminder Alarms</span>
+            <p className="text-2xl md:text-3xl font-serif tracking-tight font-light mt-1">
+              Personalized Settings & <span className={`italic ${currentTheme.gold} font-normal`}>Reminder Alarms</span>
             </p>
           </div>
           
           {/* Clinical Profile Circle Initials return to Home */}
           <button 
             onClick={() => navigateTo("/")}
-            className="w-10 h-10 rounded-full bg-gradient-to-tr from-rosevia-gold/30 to-rosevia-rose/30 border border-rosevia-gold/50 flex items-center justify-center font-serif text-xs font-bold text-rosevia-gold hover:shadow-[0_0_12px_rgba(212,175,55,0.3)] transition-all shrink-0 cursor-pointer"
+            className={`w-10 h-10 rounded-full bg-gradient-to-tr from-rosevia-gold/30 to-rosevia-rose/30 border ${currentTheme.gold === "text-rosevia-gold" ? "border-rosevia-gold/50 text-rosevia-gold" : "border-neutral-500 text-neutral-400"} flex items-center justify-center font-serif text-xs font-bold hover:shadow-lg transition-all shrink-0 cursor-pointer`}
           >
             RN
           </button>
         </header>
 
         {/* Welcome Back Ralein Banner */}
-        <div className="glass-card p-4 flex items-center justify-between shadow-xs border-l-2 border-rosevia-gold">
+        <div className={`${currentTheme.card} p-4 flex items-center justify-between shadow-xs border-l-2 border-rosevia-gold`}>
           <div className="flex items-center space-x-3.5">
             <div className="relative w-10 h-10 rounded-full bg-rosevia-rose/30 flex items-center justify-center border border-rosevia-gold/30 shrink-0">
-              <span className="font-serif text-xs font-bold text-rosevia-gold">R</span>
+              <span className={`font-serif text-xs font-bold ${currentTheme.gold}`}>R</span>
             </div>
             <div>
-              <p className="text-xs font-bold text-rosevia-charcoal leading-none">Skincare Profile: Ralein</p>
-              <p className="text-[9px] text-rosevia-clay/65 font-bold uppercase mt-1 tracking-wider">
+              <p className="text-xs font-bold leading-none">Skincare Profile: Ralein</p>
+              <p className={`text-[9px] ${currentTheme.accent} font-bold uppercase mt-1 tracking-wider`}>
                 Skin Type: {profile.skinType} | Concerns: {profile.concerns.join(", ")}
               </p>
             </div>
@@ -159,12 +211,12 @@ export default function SkincareSettings() {
           <div className="md:col-span-7 space-y-6">
             
             {/* Alarm Reminder Cards */}
-            <div className="glass-card p-6 space-y-5 shadow-sm">
+            <div className={`${currentTheme.card} p-6 space-y-5 shadow-sm`}>
               <div className="flex items-center space-x-2">
-                <Clock size={16} className="text-rosevia-gold" />
-                <h3 className="text-xs font-semibold tracking-widest uppercase text-rosevia-clay">Skincare Layer Reminder Alarms</h3>
+                <Clock size={16} className={currentTheme.gold} />
+                <h3 className={`text-xs font-semibold tracking-widest uppercase ${currentTheme.accent}`}>Skincare Layer Reminder Alarms</h3>
               </div>
-              <p className="text-xs text-rosevia-clay/70 leading-relaxed font-medium">
+              <p className={`text-xs ${currentTheme.accent} leading-relaxed font-medium`}>
                 Configure specific times to use your clinical skincare layers. Rosevia will simulate reminders at these precise times on your dashboard!
               </p>
 
@@ -257,10 +309,10 @@ export default function SkincareSettings() {
               {/* Save Settings Action */}
               <button
                 onClick={saveSettings}
-                className="w-full py-4 rounded-xl bg-rosevia-gold hover:bg-rosevia-rose hover:text-rosevia-cream text-rosevia-cream text-xs tracking-widest font-bold uppercase shadow hover:shadow-md transition-all duration-300 cursor-pointer flex items-center justify-center transform hover:-translate-y-0.5"
+                className={`w-full py-4 rounded-xl text-rosevia-cream text-xs tracking-widest font-bold uppercase shadow hover:shadow-md transition-all duration-300 cursor-pointer flex items-center justify-center transform hover:-translate-y-0.5 ${currentTheme.button}`}
               >
                 {saveStatus ? (
-                  <span className="flex items-center text-rosevia-green font-bold">
+                  <span className="flex items-center font-bold">
                     <CheckCircle size={14} className="mr-1.5 stroke-[3]" /> {saveStatus}
                   </span>
                 ) : (
@@ -275,10 +327,10 @@ export default function SkincareSettings() {
           <div className="md:col-span-5 space-y-6">
             
             {/* Toggles Panel */}
-            <div className="glass-card p-5 space-y-4 shadow-sm">
+            <div className={`${currentTheme.card} p-5 space-y-4 shadow-sm`}>
               <div className="flex items-center space-x-2">
-                <Bell size={16} className="text-rosevia-gold" />
-                <h3 className="text-xs font-semibold tracking-widest uppercase text-rosevia-clay">Skincare Sync Engines</h3>
+                <Bell size={16} className={currentTheme.gold} />
+                <h3 className={`text-xs font-semibold tracking-widest uppercase ${currentTheme.accent}`}>Skincare Sync Engines</h3>
               </div>
 
               <div className="space-y-4 pt-1">
@@ -290,8 +342,8 @@ export default function SkincareSettings() {
                 ].map((item) => (
                   <div key={item.id} className="flex justify-between items-start gap-4">
                     <div className="flex-1">
-                      <p className="text-xs font-bold text-rosevia-charcoal flex items-center"><item.icon size={12} className="mr-1.5 text-rosevia-clay" /> {item.label}</p>
-                      <p className="text-[10px] text-rosevia-clay/65 mt-0.5 leading-relaxed font-semibold">{item.desc}</p>
+                      <p className="text-xs font-bold flex items-center"><item.icon size={12} className="mr-1.5" /> {item.label}</p>
+                      <p className={`text-[10px] ${currentTheme.accent} mt-0.5 leading-relaxed font-semibold`}>{item.desc}</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-0.5">
                       <input 
@@ -308,24 +360,24 @@ export default function SkincareSettings() {
             </div>
 
             {/* Unique Theme customizer */}
-            <div className="glass-card p-5 space-y-4 shadow-sm">
+            <div className={`${currentTheme.card} p-5 space-y-4 shadow-sm`}>
               <div className="flex items-center space-x-2">
-                <Palette size={16} className="text-rosevia-gold" />
-                <h3 className="text-xs font-semibold tracking-widest uppercase text-rosevia-clay">Premium Theme Variant</h3>
+                <Palette size={16} className={currentTheme.gold} />
+                <h3 className={`text-xs font-semibold tracking-widest uppercase ${currentTheme.accent}`}>Premium Theme Variant</h3>
               </div>
-              <p className="text-[10px] text-rosevia-clay/70 leading-relaxed font-medium">
+              <p className={`text-[10px] ${currentTheme.accent} leading-relaxed font-medium`}>
                 Choose a unique aesthetic variation for your dark clinical apothecary vanity:
               </p>
 
               <div className="grid grid-cols-1 gap-2 pt-1">
                 {[
-                  { name: "Midnight Jade", desc: "Deep malachite emerald stone with liquid gold borders", border: "border-emerald-500/30" },
-                  { name: "Polished Obsidian", desc: "Sleek obsidian off-black glass with golden highlights", border: "border-slate-500/30" },
-                  { name: "Liquid Gold Premium", desc: "Extra metallic golden glows and luxury borders", border: "border-amber-500/40" }
+                  { name: "Midnight Jade", desc: "Deep malachite emerald stone with liquid gold borders" },
+                  { name: "Polished Obsidian", desc: "Sleek obsidian off-black glass with golden highlights" },
+                  { name: "Liquid Gold Premium", desc: "Extra metallic golden glows and luxury borders" }
                 ].map((theme) => (
                   <button
                     key={theme.name}
-                    onClick={() => setActiveThemeVariant(theme.name)}
+                    onClick={() => handleThemeChange(theme.name)}
                     className={`text-left p-3 rounded-xl border text-xs transition-all duration-300 cursor-pointer ${
                       activeThemeVariant === theme.name 
                         ? "bg-rosevia-rose/25 border-rosevia-gold shadow-sm font-bold"
@@ -333,10 +385,10 @@ export default function SkincareSettings() {
                     }`}
                   >
                     <div className="flex justify-between items-center">
-                      <span className="font-bold text-rosevia-charcoal">{theme.name}</span>
-                      <span className="text-[9px] uppercase tracking-wider text-rosevia-gold font-bold">Selected</span>
+                      <span className="font-bold">{theme.name}</span>
+                      <span className={`text-[9px] uppercase tracking-wider ${currentTheme.gold} font-bold`}>Selected</span>
                     </div>
-                    <p className="text-[9px] text-rosevia-clay/65 mt-0.5 leading-relaxed font-semibold">{theme.desc}</p>
+                    <p className={`text-[9px] ${currentTheme.accent} mt-0.5 leading-relaxed font-semibold`}>{theme.desc}</p>
                   </button>
                 ))}
               </div>
@@ -352,35 +404,35 @@ export default function SkincareSettings() {
       <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md glass-panel py-3.5 px-6 rounded-2xl flex justify-between items-center shadow-lg border border-rosevia-rose/40 z-50">
         <button 
           onClick={() => navigateTo("/")}
-          className="flex flex-col items-center text-rosevia-clay/70 hover:text-rosevia-clay shrink-0 cursor-pointer"
+          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
         >
           <Layers size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Home</span>
         </button>
         <button 
           onClick={() => navigateTo("/analysis")}
-          className="flex flex-col items-center text-rosevia-clay/70 hover:text-rosevia-clay shrink-0 cursor-pointer"
+          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
         >
           <Activity size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Scan</span>
         </button>
         <button 
           onClick={() => navigateTo("/cabinet")}
-          className="flex flex-col items-center text-rosevia-clay/70 hover:text-rosevia-clay shrink-0 cursor-pointer"
+          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
         >
           <FolderHeart size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Cabinet</span>
         </button>
         <button 
           onClick={() => navigateTo("/checker")}
-          className="flex flex-col items-center text-rosevia-clay/70 hover:text-rosevia-clay shrink-0 cursor-pointer"
+          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
         >
           <AlertCircle size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Checker</span>
         </button>
         <button 
           onClick={() => navigateTo("/journal")}
-          className="flex flex-col items-center text-rosevia-clay/70 hover:text-rosevia-clay shrink-0 cursor-pointer"
+          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
         >
           <BookOpen size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Diary</span>
