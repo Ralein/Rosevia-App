@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 @theme {
-  /* Sleek Minimal Slate & Sage / Botanical Pharmacy Theme */
-  --color-rosevia-cream: #F7F7F5;
-  --color-rosevia-sand: #EAECE6;
-  --color-rosevia-rose: #607C70;
-  --color-rosevia-gold: #C2B095;
-  --color-rosevia-clay: #47544C;
-  --color-rosevia-charcoal: #1E2220;
-  --color-rosevia-green: #E8EDE8;
-  --color-rosevia-sage: #30443B;
-  --color-rosevia-terracotta: #B07464;
+  /* Highly Unique Deep Obsidian Malachite & Liquid Gold Theme */
+  --color-rosevia-cream: #060D0B;       /* Deep obsidian malachite background */
+  --color-rosevia-sand: #111C18;        /* Dark polished obsidian card background */
+  --color-rosevia-rose: #688A7D;        /* Luminous soothing sage accent */
+  --color-rosevia-gold: #D4AF37;        /* Premium liquid gold highlights */
+  --color-rosevia-clay: #93A39A;        /* Warm muted sand / sage text */
+  --color-rosevia-charcoal: #F3F4F1;    /* Soft alabaster white for typography */
+  --color-rosevia-green: #172A23;       /* Deep slate-emerald background */
+  --color-rosevia-sage: #4EAB81;        /* Glowing emerald green for completed states */
+  --color-rosevia-terracotta: #E58B75;  /* Warm copper for active acids */
   
   --animate-scan: scan 3s ease-in-out infinite;
   --animate-pulse-ring: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -19,29 +19,29 @@
   @keyframes scan {
     0%, 100% {
       top: 0%;
-      opacity: 0.2;
+      opacity: 0.15;
     }
     50% {
       top: 100%;
-      opacity: 0.9;
+      opacity: 0.8;
     }
   }
   @keyframes pulse-ring {
     0% {
       transform: scale(0.95);
-      box-shadow: 0 0 0 0 rgba(96, 124, 112, 0.7);
+      box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.6);
     }
     70% {
       transform: scale(1.1);
-      box-shadow: 0 0 0 8px rgba(96, 124, 112, 0);
+      box-shadow: 0 0 0 8px rgba(212, 175, 55, 0);
     }
     100% {
       transform: scale(0.95);
-      box-shadow: 0 0 0 0 rgba(96, 124, 112, 0);
+      box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
     }
   }
   @keyframes shimmer {
-    0 {
+    0% {
       background-position: -200% 0;
     }
     100% {
@@ -51,9 +51,9 @@
 }
 
 :root {
-  --background: #F7F7F5;
-  --foreground: #1E2220;
-  color-scheme: light;
+  --background: #060D0B;
+  --foreground: #F3F4F1;
+  color-scheme: dark;
 }
 
 body {
@@ -70,37 +70,37 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #F7F7F5;
+  background: #060D0B;
 }
 ::-webkit-scrollbar-thumb {
-  background: #607C70;
+  background: #D4AF37;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #30443B;
+  background: #688A7D;
 }
 
-/* Glassmorphism utility */
+/* Luxury Obsidian Glassmorphism utility */
 .glass-panel {
-  background: rgba(247, 247, 245, 0.85);
+  background: rgba(6, 13, 11, 0.88);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(96, 124, 112, 0.25);
+  border: 1px solid rgba(212, 175, 55, 0.2);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(17, 28, 24, 0.65);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(96, 124, 112, 0.2);
+  border: 1px solid rgba(212, 175, 55, 0.18);
   border-radius: 16px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card:hover {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: rgba(96, 124, 112, 0.45);
-  box-shadow: 0 10px 30px -10px rgba(48, 68, 59, 0.08);
+  background: rgba(17, 28, 24, 0.85);
+  border-color: rgba(212, 175, 55, 0.4);
+  box-shadow: 0 10px 30px -10px rgba(6, 13, 11, 0.95);
   transform: translateY(-2px);
 }
 

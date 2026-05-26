@@ -6,15 +6,14 @@ import {
   Layers, 
   Activity, 
   FolderHeart, 
-  MessageSquareHeart, 
   BookOpen,
   CheckCircle,
-  HelpCircle,
   Clock,
   ShieldCheck,
   AlertTriangle,
   RotateCcw,
-  Loader2
+  Loader2,
+  Settings
 } from "lucide-react";
 
 interface Product {
@@ -118,12 +117,17 @@ export default function ConflictChecker() {
           <div>
             <h1 className="text-xs tracking-widest font-bold text-rosevia-clay uppercase">Cosmetic Chemistry Audit</h1>
             <p className="text-2xl md:text-3xl font-serif text-rosevia-charcoal tracking-tight font-light mt-1">
-              Ingredient <span className="italic text-rosevia-clay font-normal">Conflict Checker</span>
+              Ingredient <span className="italic text-rosevia-gold font-normal">Conflict Checker</span>
             </p>
           </div>
-          <div className="px-3 py-1 bg-rosevia-terracotta/15 border border-rosevia-terracotta/30 rounded-full text-[10px] tracking-wider uppercase font-bold text-rosevia-terracotta">
-            Cellular Safety
-          </div>
+          
+          {/* Clinical Profile Circle Initials return to Home */}
+          <button 
+            onClick={() => navigateTo("/")}
+            className="w-10 h-10 rounded-full bg-gradient-to-tr from-rosevia-gold/30 to-rosevia-rose/30 border border-rosevia-gold/50 flex items-center justify-center font-serif text-xs font-bold text-rosevia-gold hover:shadow-[0_0_12px_rgba(212,175,55,0.3)] transition-all shrink-0 cursor-pointer"
+          >
+            RN
+          </button>
         </header>
 
         {/* Dynamic Selector Split */}
@@ -137,8 +141,8 @@ export default function ConflictChecker() {
               <h3 className="text-xs font-semibold tracking-widest uppercase text-rosevia-clay">Select products from cabinet</h3>
               
               {cabinet.length === 0 ? (
-                <div className="text-center py-5 border border-dashed border-rosevia-rose/30 rounded-2xl bg-white/20">
-                  <p className="text-[10px] text-rosevia-clay/60 italic font-medium">Your cabinet shelf is empty.</p>
+                <div className="text-center py-5 border border-dashed border-rosevia-rose/30 rounded-2xl bg-rosevia-cream/30">
+                  <p className="text-[10px] text-rosevia-clay/60 italic font-semibold">Your cabinet shelf is empty.</p>
                   <button 
                     onClick={() => navigateTo("/cabinet")}
                     className="text-[10px] font-bold text-rosevia-gold hover:underline mt-1.5 block w-full text-center cursor-pointer"
@@ -156,16 +160,16 @@ export default function ConflictChecker() {
                         onClick={() => handleProductToggle(prod.id)}
                         className={`w-full flex items-center justify-between text-left p-3 rounded-xl border text-xs transition-all cursor-pointer ${
                           isSelected 
-                            ? "bg-rosevia-rose/25 border-rosevia-gold shadow-xs"
-                            : "bg-white border-rosevia-rose/20 hover:border-rosevia-rose/50"
+                            ? "bg-rosevia-rose/20 border-rosevia-gold shadow-xs"
+                            : "bg-rosevia-cream/80 border-rosevia-rose/20 hover:border-rosevia-rose/50"
                         }`}
                       >
                         <div className="truncate pr-4">
                           <p className="font-semibold text-rosevia-charcoal truncate">{prod.name}</p>
-                          <p className="text-[9px] text-rosevia-clay/65 mt-0.5 uppercase tracking-wider font-medium">{prod.category}</p>
+                          <p className="text-[9px] text-rosevia-clay/65 mt-0.5 uppercase tracking-wider font-semibold">{prod.category}</p>
                         </div>
                         <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
-                          isSelected ? "bg-rosevia-gold border-rosevia-gold text-white shadow-xs" : "border-rosevia-rose/50 bg-white"
+                          isSelected ? "bg-rosevia-gold border-rosevia-gold text-rosevia-cream shadow-xs" : "border-rosevia-rose/50 bg-rosevia-cream"
                         }`}>
                           {isSelected && <CheckCircle size={10} className="stroke-[3]" />}
                         </div>
@@ -186,9 +190,9 @@ export default function ConflictChecker() {
                   setResults(null);
                 }}
                 placeholder="Niacinamide, Retinol, Vitamin C, Salicylic Acid..."
-                className="w-full h-24 bg-white border border-rosevia-rose/30 rounded-xl p-3 text-xs focus:ring-1 focus:ring-rosevia-gold focus:outline-none placeholder-rosevia-clay/40 resize-none font-medium text-rosevia-charcoal"
+                className="w-full h-24 bg-rosevia-sand border border-rosevia-rose/30 rounded-xl p-3 text-xs focus:ring-1 focus:ring-rosevia-gold focus:outline-none placeholder-rosevia-clay/40 resize-none font-semibold text-rosevia-charcoal shadow-inner"
               />
-              <p className="text-[9px] text-rosevia-clay/60 leading-relaxed font-medium">
+              <p className="text-[9px] text-rosevia-clay/60 leading-relaxed font-semibold">
                 Separate compounds with commas. We will automatically combine these with your checked shelf items.
               </p>
             </div>
@@ -197,14 +201,14 @@ export default function ConflictChecker() {
             <div className="flex space-x-2">
               <button
                 onClick={resetChecker}
-                className="py-3.5 px-4 rounded-xl border border-rosevia-rose bg-white hover:bg-rosevia-rose/10 transition-all text-xs tracking-wider uppercase font-bold text-rosevia-clay shrink-0 cursor-pointer flex items-center shadow-xs"
+                className="py-3.5 px-4 rounded-xl border border-rosevia-rose bg-rosevia-cream hover:bg-rosevia-rose/10 transition-all text-xs tracking-wider uppercase font-bold text-rosevia-clay shrink-0 cursor-pointer flex items-center shadow-xs"
               >
                 <RotateCcw size={13} className="mr-1" /> Reset
               </button>
               <button
                 onClick={handleAnalyze}
                 disabled={analyzing || (selectedProductIds.length === 0 && !manualIngredients.trim())}
-                className="flex-1 py-3.5 rounded-xl bg-rosevia-clay text-rosevia-cream text-xs tracking-widest font-bold uppercase hover:bg-rosevia-charcoal transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center shadow-md transform hover:-translate-y-0.5"
+                className="flex-1 py-3.5 rounded-xl bg-rosevia-gold hover:bg-rosevia-rose hover:text-rosevia-cream text-rosevia-cream text-xs tracking-widest font-bold uppercase transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center shadow-md transform hover:-translate-y-0.5"
               >
                 {analyzing ? "Analyzing interactions..." : "Analyze Safety Layering"}
               </button>
@@ -220,7 +224,7 @@ export default function ConflictChecker() {
                   <Loader2 size={22} className="text-rosevia-gold animate-spin" />
                 </div>
                 <h3 className="text-sm font-serif text-rosevia-clay font-bold uppercase tracking-wider">Cosmetic Chemist Auditing...</h3>
-                <p className="text-xs text-rosevia-clay/60 max-w-xs leading-relaxed font-medium">
+                <p className="text-xs text-rosevia-clay/60 max-w-xs leading-relaxed font-semibold">
                   Validating chemical layering bounds, matching molecular oxidation rates, and inspecting lipid barriers.
                 </p>
               </div>
@@ -228,11 +232,11 @@ export default function ConflictChecker() {
               results.length === 0 ? (
                 /* 100% BARRIER APPROVED STATUS */
                 <div className="glass-card p-8 text-center flex flex-col items-center justify-center space-y-4 aspect-[4/3] md:aspect-[4/2.5] border border-rosevia-sage/40 bg-rosevia-green/45 shadow-sm animate-fade-in">
-                  <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-md border border-rosevia-sage/30">
+                  <div className="w-14 h-14 rounded-full bg-rosevia-cream flex items-center justify-center shadow-md border border-rosevia-sage/30">
                     <ShieldCheck size={28} className="text-rosevia-sage fill-rosevia-green/30" />
                   </div>
                   <div className="space-y-1.5">
-                    <span className="text-[9px] font-bold bg-white text-rosevia-sage px-2.5 py-0.5 border border-rosevia-sage/20 rounded-full uppercase tracking-wider">
+                    <span className="text-[9px] font-bold bg-rosevia-cream text-rosevia-sage px-2.5 py-0.5 border border-rosevia-sage/20 rounded-full uppercase tracking-wider">
                       Barrier Approved
                     </span>
                     <h3 className="text-base font-serif text-rosevia-sage font-bold">100% Layering Compatibility</h3>
@@ -251,10 +255,10 @@ export default function ConflictChecker() {
                       key={idx} 
                       className={`glass-card p-5 border flex flex-col space-y-3.5 shadow-sm ${
                         r.severity === "high" 
-                          ? "border-rose-200 bg-rose-50/20"
+                          ? "border-rose-950 bg-rose-950/20"
                           : r.severity === "medium"
-                          ? "border-amber-200 bg-amber-50/10"
-                          : "border-rosevia-sage/35 bg-rosevia-green/10"
+                          ? "border-amber-950 bg-amber-950/15"
+                          : "border-rosevia-sage/35 bg-rosevia-green/20"
                       }`}
                     >
                       {/* Badge and Title */}
@@ -262,9 +266,9 @@ export default function ConflictChecker() {
                         <div>
                           <span className={`text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase border tracking-wider inline-block ${
                             r.severity === "high" 
-                              ? "bg-rose-100 border-rose-200 text-rose-800"
+                              ? "bg-rose-900 border-rose-800 text-rose-200"
                               : r.severity === "medium"
-                              ? "bg-amber-100 border-amber-200 text-amber-800"
+                              ? "bg-amber-900 border-amber-800 text-amber-200"
                               : "bg-rosevia-green border-rosevia-sage/20 text-rosevia-sage"
                           }`}>
                             {r.badge}
@@ -274,21 +278,21 @@ export default function ConflictChecker() {
                           </h5>
                         </div>
                         <AlertTriangle size={16} className={`shrink-0 ${
-                          r.severity === "high" ? "text-rose-600 animate-bounce" : r.severity === "medium" ? "text-amber-600" : "text-rosevia-sage"
+                          r.severity === "high" ? "text-rose-400 animate-bounce" : r.severity === "medium" ? "text-amber-400" : "text-rosevia-sage"
                         }`} />
                       </div>
 
                       {/* Chemical explanation */}
-                      <p className="text-xs text-rosevia-clay/90 leading-relaxed font-medium">
+                      <p className="text-xs text-rosevia-clay/90 leading-relaxed font-semibold">
                         {r.description}
                       </p>
 
                       {/* Scientific Solution Card */}
-                      <div className="bg-white/80 border border-rosevia-rose/25 rounded-xl p-3.5 space-y-1.5 shadow-xs">
+                      <div className="bg-rosevia-cream border border-rosevia-rose/25 rounded-xl p-3.5 space-y-1.5 shadow-xs">
                         <p className="text-[9px] font-bold text-rosevia-gold flex items-center uppercase tracking-wider">
                           <Clock size={11} className="mr-1.5 shrink-0" /> Clinical Action Plan
                         </p>
-                        <p className="text-xs text-rosevia-clay/90 leading-relaxed font-medium">
+                        <p className="text-xs text-rosevia-clay/90 leading-relaxed font-semibold">
                           {r.solution}
                         </p>
                       </div>
@@ -298,10 +302,10 @@ export default function ConflictChecker() {
               )
             ) : (
               /* GORGEOUS SVG MOLECULAR NETWORKS PLACEHOLDER */
-              <div className="glass-card p-8 text-center flex flex-col items-center justify-center space-y-4 aspect-[4/3] md:aspect-[4/2.5] bg-white/50 shadow-sm relative overflow-hidden group">
+              <div className="glass-card p-8 text-center flex flex-col items-center justify-center space-y-4 aspect-[4/3] md:aspect-[4/2.5] bg-rosevia-sand/70 shadow-sm relative overflow-hidden group">
                 <div className="absolute inset-0 bg-radial-gradient from-rosevia-rose/5 to-transparent pointer-events-none" />
                 
-                <svg className="w-28 h-28 text-rosevia-rose/65 animate-pulse" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.2">
+                <svg className="w-28 h-28 text-rosevia-gold/75 animate-pulse" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.2">
                   {/* Molecular nodes */}
                   <circle cx="50" cy="50" r="6" strokeWidth="1.8" fill="#FAF7F2" />
                   <circle cx="30" cy="30" r="4" fill="#FAF7F2" />
@@ -318,8 +322,8 @@ export default function ConflictChecker() {
                 </svg>
 
                 <div className="space-y-1 z-10">
-                  <h3 className="text-sm font-serif font-bold text-rosevia-clay uppercase tracking-wide">Select items to scan safety</h3>
-                  <p className="text-xs text-rosevia-clay/80 max-w-sm leading-relaxed font-medium mx-auto">
+                  <h3 className="text-sm font-serif font-bold text-rosevia-gold uppercase tracking-wide">Select items to scan safety</h3>
+                  <p className="text-xs text-rosevia-clay max-w-sm leading-relaxed font-semibold mx-auto">
                     Check off products from your digital cabinet on the left, or paste raw active ingredients (like Retinol or Salicylic Acid) to check for barrier deactivations and schedule alterations.
                   </p>
                 </div>
@@ -331,25 +335,25 @@ export default function ConflictChecker() {
 
       </div>
 
-      {/* FLOATING BOTTOM NAVIGATION (SPACED FOR 6 ITEMS) */}
+      {/* FLOATING BOTTOM PREMIUM NAVIGATION DOCK (BALANCED FOR 6 ITEMS WITH SETTINGS) */}
       <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md glass-panel py-3.5 px-6 rounded-2xl flex justify-between items-center shadow-lg border border-rosevia-rose/40 z-50">
         <button 
           onClick={() => navigateTo("/")}
-          className="flex flex-col items-center text-rosevia-clay/70 hover:text-rosevia-clay shrink-0 cursor-pointer"
+          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
         >
           <Layers size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Home</span>
         </button>
         <button 
           onClick={() => navigateTo("/analysis")}
-          className="flex flex-col items-center text-rosevia-clay/70 hover:text-rosevia-clay shrink-0 cursor-pointer"
+          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
         >
           <Activity size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Scan</span>
         </button>
         <button 
           onClick={() => navigateTo("/cabinet")}
-          className="flex flex-col items-center text-rosevia-clay/70 hover:text-rosevia-clay shrink-0 cursor-pointer"
+          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
         >
           <FolderHeart size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Cabinet</span>
@@ -362,18 +366,18 @@ export default function ConflictChecker() {
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Checker</span>
         </button>
         <button 
-          onClick={() => navigateTo("/chat")}
-          className="flex flex-col items-center text-rosevia-clay/70 hover:text-rosevia-clay shrink-0 cursor-pointer"
-        >
-          <MessageSquareHeart size={18} />
-          <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Chat</span>
-        </button>
-        <button 
           onClick={() => navigateTo("/journal")}
-          className="flex flex-col items-center text-rosevia-clay/70 hover:text-rosevia-clay shrink-0 cursor-pointer"
+          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
         >
           <BookOpen size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Diary</span>
+        </button>
+        <button 
+          onClick={() => navigateTo("/settings")}
+          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer animate-none"
+        >
+          <Settings size={18} />
+          <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Settings</span>
         </button>
       </nav>
 

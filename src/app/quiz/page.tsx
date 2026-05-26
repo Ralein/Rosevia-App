@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/router";
 import { 
   Sparkles, 
   Droplet, 
@@ -77,13 +76,13 @@ export default function SkinQuiz() {
   const totalSteps = 4;
 
   return (
-    <div className="min-height-screen bg-rosevia-cream text-rosevia-charcoal flex flex-col items-center justify-center p-4 md:p-8 select-none">
+    <div className="min-h-screen bg-rosevia-cream text-rosevia-charcoal flex flex-col items-center justify-center p-4 md:p-8 select-none">
       {/* Premium Header */}
       <div className="text-center mb-8">
-        <h1 className="text-3xl md:text-4xl font-serif tracking-widest text-rosevia-clay uppercase">
+        <h1 className="text-3xl md:text-4xl font-serif tracking-widest text-rosevia-gold uppercase font-bold">
           Rosevia
         </h1>
-        <p className="text-xs tracking-widest text-rosevia-gold uppercase mt-1">
+        <p className="text-xs tracking-widest text-rosevia-clay uppercase mt-1 font-bold">
           Dermatological Profile Builder
         </p>
       </div>
@@ -95,15 +94,15 @@ export default function SkinQuiz() {
             {Array.from({ length: totalSteps }).map((_, i) => (
               <div key={i} className="flex-1 flex items-center">
                 <div 
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs transition-all duration-300 font-medium ${
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs transition-all duration-300 font-bold ${
                     step > i + 1 
                       ? "bg-rosevia-rose text-rosevia-cream"
                       : step === i + 1
                       ? "bg-rosevia-gold text-rosevia-cream ring-4 ring-rosevia-rose/20"
-                      : "bg-white text-rosevia-clay/60 border border-rosevia-rose/30"
+                      : "bg-rosevia-cream/80 text-rosevia-clay/60 border border-rosevia-rose/30"
                   }`}
                 >
-                  {step > i + 1 ? <Check size={14} /> : i + 1}
+                  {step > i + 1 ? <Check size={14} className="stroke-[3]" /> : i + 1}
                 </div>
                 {i < totalSteps - 1 && (
                   <div 
@@ -124,12 +123,12 @@ export default function SkinQuiz() {
               <div className="w-20 h-20 rounded-full bg-rosevia-rose/10 flex items-center justify-center animate-pulse-ring">
                 <Sparkles size={32} className="text-rosevia-gold animate-spin duration-3000" />
               </div>
-              <Loader2 size={48} className="text-rosevia-rose animate-spin absolute -top-3 -right-3" />
+              <Loader2 size={48} className="text-rosevia-gold animate-spin absolute -top-3 -right-3" />
             </div>
-            <h2 className="text-xl md:text-2xl font-serif text-rosevia-clay mb-2">
+            <h2 className="text-xl md:text-2xl font-serif text-rosevia-gold mb-2">
               Formulating Your Botanical & Clinical Cycle...
             </h2>
-            <p className="text-sm text-rosevia-clay/70 max-w-sm">
+            <p className="text-xs text-rosevia-clay max-w-sm font-semibold">
               Our AI cosmetician is layering active complexes and scheduling rest days based on your skin metrics.
             </p>
           </div>
@@ -140,10 +139,10 @@ export default function SkinQuiz() {
             {step === 1 && (
               <div className="space-y-6">
                 <div className="text-center md:text-left">
-                  <h2 className="text-xl md:text-2xl font-serif text-rosevia-clay">
+                  <h2 className="text-xl md:text-2xl font-serif text-rosevia-gold">
                     Describe your skin's primary nature.
                   </h2>
-                  <p className="text-xs text-rosevia-clay/60 mt-1">
+                  <p className="text-xs text-rosevia-clay mt-1 font-semibold">
                     Select the option that best describes your baseline skin behavior.
                   </p>
                 </div>
@@ -159,16 +158,16 @@ export default function SkinQuiz() {
                     <button
                       key={item.id}
                       onClick={() => setSkinType(item.id)}
-                      className={`flex items-start text-left p-4 rounded-xl transition-all duration-300 ${
+                      className={`flex items-start text-left p-4 rounded-xl transition-all duration-300 cursor-pointer ${
                         skinType === item.id 
-                          ? "bg-rosevia-rose/25 border-2 border-rosevia-gold shadow-sm"
-                          : "bg-white border border-rosevia-rose/20 hover:border-rosevia-rose/50"
+                          ? "bg-rosevia-rose/20 border-2 border-rosevia-gold shadow-sm"
+                          : "bg-rosevia-cream/80 border border-rosevia-rose/20 hover:border-rosevia-rose/50"
                       }`}
                     >
-                      <item.icon size={20} className={`mt-0.5 mr-3 shrink-0 ${skinType === item.id ? "text-rosevia-gold" : "text-rosevia-clay/55"}`} />
+                      <item.icon size={20} className={`mt-0.5 mr-3 shrink-0 ${skinType === item.id ? "text-rosevia-gold animate-pulse" : "text-rosevia-clay/55"}`} />
                       <div>
-                        <p className="font-medium text-sm">{item.label}</p>
-                        <p className="text-xs text-rosevia-clay/75 mt-0.5">{item.desc}</p>
+                        <p className="font-bold text-sm text-rosevia-charcoal">{item.label}</p>
+                        <p className="text-xs text-rosevia-clay mt-0.5 font-semibold leading-relaxed">{item.desc}</p>
                       </div>
                     </button>
                   ))}
@@ -180,10 +179,10 @@ export default function SkinQuiz() {
             {step === 2 && (
               <div className="space-y-6">
                 <div className="text-center md:text-left">
-                  <h2 className="text-xl md:text-2xl font-serif text-rosevia-clay">
+                  <h2 className="text-xl md:text-2xl font-serif text-rosevia-gold">
                     Identify your primary skin goals.
                   </h2>
-                  <p className="text-xs text-rosevia-clay/60 mt-1">
+                  <p className="text-xs text-rosevia-clay mt-1 font-semibold">
                     What changes are you looking to target with your active cycle? (Select all that apply)
                   </p>
                 </div>
@@ -201,20 +200,20 @@ export default function SkinQuiz() {
                       <button
                         key={item.id}
                         onClick={() => handleConcernToggle(item.id)}
-                        className={`flex items-start text-left p-4 rounded-xl transition-all duration-300 ${
+                        className={`flex items-start text-left p-4 rounded-xl transition-all duration-300 cursor-pointer ${
                           isSelected 
-                            ? "bg-rosevia-rose/25 border-2 border-rosevia-gold shadow-sm"
-                            : "bg-white border border-rosevia-rose/20 hover:border-rosevia-rose/50"
+                            ? "bg-rosevia-rose/20 border-2 border-rosevia-gold shadow-sm"
+                            : "bg-rosevia-cream/80 border border-rosevia-rose/20 hover:border-rosevia-rose/50"
                         }`}
                       >
                         <div className={`w-5 h-5 rounded-md border flex items-center justify-center mt-0.5 mr-3 shrink-0 transition-all ${
-                          isSelected ? "bg-rosevia-gold border-rosevia-gold text-white" : "border-rosevia-rose/50 bg-white"
+                          isSelected ? "bg-rosevia-gold border-rosevia-gold text-rosevia-cream" : "border-rosevia-rose/50 bg-rosevia-cream"
                         }`}>
-                          {isSelected && <Check size={12} />}
+                          {isSelected && <Check size={12} className="stroke-[3]" />}
                         </div>
                         <div>
-                          <p className="font-medium text-sm">{item.label}</p>
-                          <p className="text-xs text-rosevia-clay/75 mt-0.5">{item.desc}</p>
+                          <p className="font-bold text-sm text-rosevia-charcoal">{item.label}</p>
+                          <p className="text-xs text-rosevia-clay mt-0.5 font-semibold leading-relaxed">{item.desc}</p>
                         </div>
                       </button>
                     );
@@ -227,10 +226,10 @@ export default function SkinQuiz() {
             {step === 3 && (
               <div className="space-y-6">
                 <div className="text-center md:text-left">
-                  <h2 className="text-xl md:text-2xl font-serif text-rosevia-clay">
+                  <h2 className="text-xl md:text-2xl font-serif text-rosevia-gold">
                     Describe your environmental climate.
                   </h2>
-                  <p className="text-xs text-rosevia-clay/60 mt-1">
+                  <p className="text-xs text-rosevia-clay mt-1 font-semibold">
                     Your skin's moisture evaporation rate highly correlates with weather metrics!
                   </p>
                 </div>
@@ -245,16 +244,16 @@ export default function SkinQuiz() {
                     <button
                       key={item.id}
                       onClick={() => setClimate(item.id)}
-                      className={`flex items-start text-left p-4 rounded-xl transition-all duration-300 ${
+                      className={`flex items-start text-left p-4 rounded-xl transition-all duration-300 cursor-pointer ${
                         climate === item.id 
-                          ? "bg-rosevia-rose/25 border-2 border-rosevia-gold shadow-sm"
-                          : "bg-white border border-rosevia-rose/20 hover:border-rosevia-rose/50"
+                          ? "bg-rosevia-rose/20 border-2 border-rosevia-gold shadow-sm"
+                          : "bg-rosevia-cream/80 border border-rosevia-rose/20 hover:border-rosevia-rose/50"
                       }`}
                     >
-                      <item.icon size={20} className={`mt-0.5 mr-3 shrink-0 ${climate === item.id ? "text-rosevia-gold" : "text-rosevia-clay/55"}`} />
+                      <item.icon size={20} className={`mt-0.5 mr-3 shrink-0 ${climate === item.id ? "text-rosevia-gold animate-pulse" : "text-rosevia-clay/55"}`} />
                       <div>
-                        <p className="font-medium text-sm">{item.label}</p>
-                        <p className="text-xs text-rosevia-clay/75 mt-0.5">{item.desc}</p>
+                        <p className="font-bold text-sm text-rosevia-charcoal">{item.label}</p>
+                        <p className="text-xs text-rosevia-clay mt-0.5 font-semibold leading-relaxed">{item.desc}</p>
                       </div>
                     </button>
                   ))}
@@ -266,10 +265,10 @@ export default function SkinQuiz() {
             {step === 4 && (
               <div className="space-y-6">
                 <div className="text-center md:text-left">
-                  <h2 className="text-xl md:text-2xl font-serif text-rosevia-clay">
+                  <h2 className="text-xl md:text-2xl font-serif text-rosevia-gold">
                     Nearly finished...
                   </h2>
-                  <p className="text-xs text-rosevia-clay/60 mt-1">
+                  <p className="text-xs text-rosevia-clay mt-1 font-semibold">
                     Provide your age group and experience to gauge active chemical tolerance.
                   </p>
                 </div>
@@ -283,10 +282,10 @@ export default function SkinQuiz() {
                         <button
                           key={item}
                           onClick={() => setAge(item)}
-                          className={`py-3 px-2 rounded-lg text-xs font-medium border text-center transition-all ${
+                          className={`py-3 px-2 rounded-lg text-xs font-bold border text-center transition-all cursor-pointer ${
                             age === item 
-                              ? "bg-rosevia-rose/30 border-rosevia-gold text-rosevia-charcoal font-semibold shadow-sm"
-                              : "bg-white border-rosevia-rose/20 hover:border-rosevia-rose/50"
+                              ? "bg-rosevia-rose/25 border-rosevia-gold text-rosevia-charcoal shadow-sm"
+                              : "bg-rosevia-cream/80 border-rosevia-rose/20 hover:border-rosevia-rose/50"
                           }`}
                         >
                           {item}
@@ -303,10 +302,10 @@ export default function SkinQuiz() {
                         <button
                           key={item}
                           onClick={() => setExperience(item)}
-                          className={`py-3 px-2 rounded-lg text-xs font-medium border text-center transition-all ${
+                          className={`py-3 px-2 rounded-lg text-xs font-bold border text-center transition-all cursor-pointer ${
                             experience === item 
-                              ? "bg-rosevia-rose/30 border-rosevia-gold text-rosevia-charcoal font-semibold shadow-sm"
-                              : "bg-white border-rosevia-rose/20 hover:border-rosevia-rose/50"
+                              ? "bg-rosevia-rose/25 border-rosevia-gold text-rosevia-charcoal shadow-sm"
+                              : "bg-rosevia-cream/80 border-rosevia-rose/20 hover:border-rosevia-rose/50"
                           }`}
                         >
                           {item}
@@ -323,7 +322,7 @@ export default function SkinQuiz() {
               {step > 1 ? (
                 <button
                   onClick={() => setStep(step - 1)}
-                  className="flex items-center text-xs tracking-wider uppercase font-semibold text-rosevia-clay hover:text-rosevia-charcoal transition-all"
+                  className="flex items-center text-xs tracking-wider uppercase font-bold text-rosevia-clay hover:text-rosevia-gold transition-all cursor-pointer"
                 >
                   <ChevronLeft size={16} className="mr-1" /> Back
                 </button>
@@ -339,7 +338,7 @@ export default function SkinQuiz() {
                     (step === 2 && concerns.length === 0) ||
                     (step === 3 && !climate)
                   }
-                  className="flex items-center px-5 py-3 rounded-lg text-xs tracking-wider uppercase font-semibold bg-rosevia-clay text-rosevia-cream hover:bg-rosevia-charcoal transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  className="flex items-center px-5 py-3 rounded-lg text-xs tracking-wider uppercase font-bold bg-rosevia-clay text-rosevia-cream hover:bg-rosevia-gold hover:text-rosevia-cream transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow"
                 >
                   Continue <ArrowRight size={14} className="ml-1.5" />
                 </button>
@@ -347,7 +346,7 @@ export default function SkinQuiz() {
                 <button
                   onClick={handleSubmit}
                   disabled={!age || !experience}
-                  className="flex items-center px-6 py-3.5 rounded-lg text-xs tracking-widest uppercase font-semibold bg-rosevia-gold text-rosevia-cream hover:bg-rosevia-clay transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  className="flex items-center px-6 py-3.5 rounded-lg text-xs tracking-widest uppercase font-bold bg-rosevia-gold text-rosevia-cream hover:bg-rosevia-rose transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-md"
                 >
                   Create My Cycle <Sparkles size={14} className="ml-2" />
                 </button>

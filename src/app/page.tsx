@@ -16,14 +16,15 @@ import {
   RefreshCw,
   Award,
   ChevronRight,
-  TrendingUp,
   MapPin,
   Heart,
   BookOpen,
   FolderHeart,
-  MessageSquareHeart,
   Check,
-  Zap
+  Zap,
+  Settings,
+  Bell,
+  LogOut
 } from "lucide-react";
 import confetti from "canvas-confetti";
 
@@ -42,6 +43,15 @@ interface Profile {
   experience: string;
 }
 
+interface Reminders {
+  serumTimeAM: string;
+  serumTimePM: string;
+  moistTimeAM: string;
+  moistTimePM: string;
+  spfTime: string;
+  spfInterval: number;
+}
+
 export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -50,6 +60,19 @@ export default function Home() {
   const [streak, setStreak] = useState<number>(3);
   const [completedAM, setCompletedAM] = useState<boolean>(false);
   const [completedPM, setCompletedPM] = useState<boolean>(false);
+  
+  // Profile dropdown state
+  const [showProfileDropdown, setShowProfileDropdown] = useState<boolean>(false);
+
+  // Reminders state
+  const [reminders, setReminders] = useState<Reminders>({
+    serumTimeAM: "08:00",
+    serumTimePM: "21:30",
+    moistTimeAM: "08:15",
+    moistTimePM: "21:45",
+    spfTime: "09:00",
+    spfInterval: 2
+  });
   
   // Environmental simulator state
   const [climateSim, setClimateSim] = useState<string>("Seoul"); 
@@ -80,7 +103,30 @@ export default function Home() {
     if (savedStreak) {
       setStreak(parseInt(savedStreak));
     }
+
+    const savedReminders = localStorage.getItem("rosevia_reminders");
+    if (savedReminders) {
+      setReminders(JSON.parse(savedReminders));
+    }
+
+    const savedToggles = localStorage.getItem("rosevia_system_toggles");
+    if (savedToggles) {
+      const parsed = JSON.parse(savedToggles);
+      setCycleSync(parsed.hormoneSync || false);
+      setClimateSim(parsed.climateAdapt ? "Seoul" : "Seoul");
+    }
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("rosevia_profile");
+    localStorage.removeItem("rosevia_routine");
+    localStorage.removeItem("rosevia_cabinet");
+    localStorage.removeItem("rosevia_streak");
+    localStorage.removeItem("rosevia_journal_log");
+    localStorage.removeItem("rosevia_reminders");
+    localStorage.removeItem("rosevia_system_toggles");
+    window.location.reload();
+  };
 
   if (!mounted) {
     return (
@@ -90,34 +136,34 @@ export default function Home() {
     );
   }
 
-  // 1. GORGEOUS LANDING SPLASH IF NOT ONBOARDED
+  // 1. GORGEOUS LANDING SPLASH IF NOT ONBOARDED (DARK APOTHECARY AESTHETIC)
   if (!profile || !routine) {
     return (
       <div className="min-h-screen bg-rosevia-cream text-rosevia-charcoal flex flex-col justify-between p-6 md:p-12 relative overflow-hidden select-none">
-        {/* Soft background decor */}
-        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-rosevia-rose/20 blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-rosevia-gold/10 blur-[100px]" />
+        {/* Soft background malachite/obsidian/gold glows */}
+        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-rosevia-rose/10 blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-rosevia-gold/5 blur-[100px]" />
 
         {/* Premium Navbar */}
-        <header className="flex justify-between items-center z-10">
+        <header className="flex justify-between items-center z-10 max-w-5xl mx-auto w-full">
           <div className="flex items-center space-x-2">
-            <span className="font-serif text-3xl tracking-widest text-rosevia-clay uppercase font-semibold">Rosevia</span>
+            <span className="font-serif text-3xl tracking-widest text-rosevia-gold uppercase font-semibold">Rosevia</span>
           </div>
-          <span className="text-xs tracking-widest text-rosevia-gold font-bold uppercase">Skin Wellness AI</span>
+          <span className="text-[9px] tracking-widest text-rosevia-rose font-bold uppercase bg-rosevia-green border border-rosevia-rose/25 px-3 py-1 rounded-full">Skin Wellness AI</span>
         </header>
 
         {/* Main hero area */}
         <main className="max-w-4xl mx-auto my-auto flex flex-col items-center text-center z-10 space-y-8 pt-12">
           <div className="space-y-4">
-            <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full border border-rosevia-rose/55 bg-white/60 text-rosevia-clay text-[10px] tracking-widest uppercase font-bold shadow-sm">
+            <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full border border-rosevia-gold/30 bg-rosevia-sand/70 text-rosevia-clay text-[10px] tracking-widest uppercase font-bold shadow-sm">
               <Sparkles size={12} className="text-rosevia-gold animate-pulse mr-1" />
               <span>Great skin is consistent, not complicated</span>
             </div>
-            <h1 className="text-5xl md:text-8xl font-serif text-rosevia-charcoal tracking-tight leading-tight">
+            <h1 className="text-4xl md:text-7xl font-serif text-rosevia-charcoal tracking-tight leading-tight">
               The premium path to <br />
-              <span className="italic text-rosevia-clay font-light">radiant, timeless</span> skin.
+              <span className="italic text-rosevia-gold font-light">radiant, timeless</span> skin.
             </h1>
-            <p className="text-sm md:text-lg text-rosevia-clay/80 max-w-xl mx-auto leading-relaxed">
+            <p className="text-xs md:text-sm text-rosevia-clay max-w-xl mx-auto leading-relaxed font-semibold">
               We analyze your facial biology, cross-reference ingredient conflicts, adjust for climate UV, and build your bespoke clinical routines. You show up. Rosevia figures out the rest.
             </p>
           </div>
@@ -125,7 +171,7 @@ export default function Home() {
           <div className="pt-4 flex flex-col sm:flex-row gap-4 items-center justify-center w-full">
             <button
               onClick={() => navigateTo("/quiz")}
-              className="w-full sm:w-auto px-8 py-5 rounded-full text-xs font-bold tracking-widest uppercase bg-rosevia-clay text-rosevia-cream hover:bg-rosevia-charcoal shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center cursor-pointer transform hover:-translate-y-0.5"
+              className="w-full sm:w-auto px-8 py-5 rounded-full text-xs font-bold tracking-widest uppercase bg-rosevia-gold text-rosevia-cream hover:bg-rosevia-rose shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center cursor-pointer transform hover:-translate-y-0.5"
             >
               Consult Our AI & Build Cycle <ChevronRight size={14} className="ml-2" />
             </button>
@@ -137,17 +183,17 @@ export default function Home() {
               { title: "Intelligent Layouts", desc: "Strict application order & wait-times" },
               { title: "Conflict Scanning", desc: "Avoid active acid cell stress" },
               { title: "AI Selfie Analysis", desc: "Track weekly clinical skin index" },
-              { title: "Climate Adaptive", desc: "Updates for UV, humidity, & hormones" }
+              { title: "Vanity Reminders", desc: "Sunscreen, Serum, & Moisturizer alarms" }
             ].map((prop, idx) => (
-              <div key={idx} className="bg-white/45 border border-rosevia-rose/25 rounded-2xl p-5 text-center glass-panel shadow-sm">
-                <p className="text-xs font-bold text-rosevia-clay tracking-wider uppercase">{prop.title}</p>
-                <p className="text-[10px] text-rosevia-clay/70 mt-1.5 leading-relaxed">{prop.desc}</p>
+              <div key={idx} className="bg-rosevia-sand/65 border border-rosevia-rose/15 rounded-2xl p-5 text-center glass-card shadow-sm">
+                <p className="text-[10px] font-bold text-rosevia-gold tracking-wider uppercase">{prop.title}</p>
+                <p className="text-[9px] text-rosevia-clay mt-1.5 leading-relaxed font-semibold">{prop.desc}</p>
               </div>
             ))}
           </div>
         </main>
 
-        <footer className="text-center text-[10px] tracking-widest text-rosevia-clay/60 z-10 mt-12 font-semibold">
+        <footer className="text-center text-[9px] tracking-widest text-rosevia-clay/60 z-10 mt-12 font-semibold">
           © {new Date().getFullYear()} ROSEVIA CLINICAL. ALL RIGHTS RESERVED.
         </footer>
       </div>
@@ -167,7 +213,7 @@ export default function Home() {
       particleCount: 150,
       spread: 80,
       origin: { y: 0.8 },
-      colors: ["#FAF7F2", "#EAD2C6", "#C5A880", "#8C6D58"]
+      colors: ["#FAF7F2", "#688A7D", "#D4AF37", "#111C18"]
     });
 
     const newStreak = streak + 1;
@@ -186,8 +232,8 @@ export default function Home() {
           humidity: "28%",
           temp: "6°C",
           adjust: "Moisture Heavy",
-          ambientBg: "from-blue-50/80 via-indigo-50/40 to-white/90 border-indigo-200/50 shadow-indigo-100/30",
-          accentColor: "text-indigo-600 bg-indigo-100/60"
+          ambientBg: "from-blue-950/40 via-indigo-950/20 to-[#060D0B] border-blue-900/30",
+          accentColor: "text-blue-300 bg-blue-950/60 border border-blue-800/40"
         };
       case "Miami":
         return {
@@ -197,8 +243,8 @@ export default function Home() {
           humidity: "84%",
           temp: "31°C",
           adjust: "Matte & Clean",
-          ambientBg: "from-teal-50/80 via-emerald-50/40 to-white/90 border-teal-200/50 shadow-teal-100/30",
-          accentColor: "text-emerald-600 bg-emerald-100/60"
+          ambientBg: "from-teal-950/40 via-emerald-950/20 to-[#060D0B] border-emerald-900/30",
+          accentColor: "text-emerald-300 bg-emerald-950/60 border border-emerald-800/40"
         };
       case "Sydney":
         return {
@@ -208,8 +254,8 @@ export default function Home() {
           humidity: "50%",
           temp: "27°C",
           adjust: "SPF Boosted",
-          ambientBg: "from-amber-50/80 via-orange-50/40 to-white/90 border-amber-200/50 shadow-amber-100/30",
-          accentColor: "text-amber-600 bg-amber-100/60"
+          ambientBg: "from-amber-950/40 via-orange-950/20 to-[#060D0B] border-amber-900/30",
+          accentColor: "text-amber-300 bg-amber-950/60 border border-amber-800/40"
         };
       case "London":
       default:
@@ -220,8 +266,8 @@ export default function Home() {
           humidity: "65%",
           temp: "15°C",
           adjust: "Antioxidant Rich",
-          ambientBg: "from-violet-50/80 via-slate-100/60 to-white/90 border-slate-200/60 shadow-slate-100/30",
-          accentColor: "text-violet-600 bg-violet-100/60"
+          ambientBg: "from-purple-950/40 via-slate-950/20 to-[#060D0B] border-purple-900/30",
+          accentColor: "text-purple-300 bg-purple-950/60 border border-purple-800/40"
         };
     }
   };
@@ -233,26 +279,76 @@ export default function Home() {
       
       {/* Header Profile Panel */}
       <div className="max-w-4xl mx-auto px-4 pt-6 md:pt-10 flex flex-col space-y-6">
-        <header className="flex justify-between items-start">
+        <header className="flex justify-between items-start relative">
           <div>
             <h1 className="text-xs tracking-widest font-bold text-rosevia-clay uppercase">Welcome to Your Path</h1>
             <p className="text-2xl md:text-3xl font-serif text-rosevia-charcoal tracking-tight font-light mt-1">
-              Consistency is key, <span className="italic text-rosevia-clay font-normal">Glow on.</span>
+              Welcome back, <span className="italic text-rosevia-gold font-normal">Ralein.</span>
             </p>
           </div>
 
-          {/* Streak Badge with premium warm gold glow */}
-          <div className="flex items-center space-x-2.5 px-4 py-2 rounded-full bg-rosevia-rose/30 border border-rosevia-rose/40 shadow-sm hover:shadow transition-all duration-300">
-            <Flame size={16} className="text-rosevia-gold fill-rosevia-gold animate-bounce" />
-            <span className="text-xs font-bold text-rosevia-clay">{streak} Day Streak</span>
+          <div className="flex items-center space-x-3 shrink-0">
+            {/* Streak Badge with premium warm gold glow */}
+            <div className="flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-rosevia-rose/20 border border-rosevia-rose/30 shadow-sm hover:shadow transition-all duration-300">
+              <Flame size={14} className="text-rosevia-gold fill-rosevia-gold animate-bounce mr-0.5" />
+              <span className="text-[10px] font-bold text-rosevia-clay">{streak} Day Streak</span>
+            </div>
+
+            {/* Clickable Profile Circle Badge */}
+            <div className="relative">
+              <button 
+                onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                className="w-10 h-10 rounded-full bg-gradient-to-tr from-rosevia-gold/30 to-rosevia-rose/30 border border-rosevia-gold/50 flex items-center justify-center font-serif text-xs font-bold text-rosevia-gold hover:shadow-[0_0_12px_rgba(212,175,55,0.3)] transition-all cursor-pointer"
+              >
+                RN
+              </button>
+
+              {/* Glassmorphic Dropdown Overlay */}
+              {showProfileDropdown && (
+                <div className="absolute right-0 mt-2 w-64 glass-panel rounded-2xl p-4 shadow-xl z-50 animate-fade-in space-y-4">
+                  <div className="border-b border-rosevia-rose/20 pb-3">
+                    <p className="text-xs font-bold text-rosevia-charcoal leading-none">Ralein's Skincare Profile</p>
+                    <span className="text-[8px] text-rosevia-gold uppercase tracking-wider font-bold block mt-1">Clinical Skin Metrics</span>
+                  </div>
+                  
+                  <div className="space-y-2 text-[10px] font-medium text-rosevia-clay">
+                    <div className="flex justify-between">
+                      <span className="font-semibold text-rosevia-clay/60">SKIN TYPE</span>
+                      <span className="font-bold text-rosevia-charcoal">{profile.skinType}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-semibold text-rosevia-clay/60">MAIN CONCERN</span>
+                      <span className="font-bold text-rosevia-charcoal">{profile.concerns[0]}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-semibold text-rosevia-clay/60">EXPERIENCE</span>
+                      <span className="font-bold text-rosevia-charcoal">{profile.experience}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-semibold text-rosevia-clay/60">AGE GROUP</span>
+                      <span className="font-bold text-rosevia-charcoal">{profile.age}</span>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-rosevia-rose/20 pt-3">
+                    <button 
+                      onClick={handleLogout}
+                      className="w-full py-2.5 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/40 text-[9px] font-bold tracking-wider text-rose-300 uppercase transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                    >
+                      <LogOut size={11} /> Reset Profile & Logout
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
         {/* Current Active Cycle Info Card */}
         <div className="glass-card p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm relative overflow-hidden">
-          <div className="absolute top-[-10%] right-[-5%] w-[30%] h-[120%] bg-gradient-to-tr from-transparent via-white/10 to-transparent pointer-events-none transform rotate-12" />
+          <div className="absolute top-[-10%] right-[-5%] w-[30%] h-[120%] bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none transform rotate-12" />
           <div className="space-y-1">
-            <span className="text-[9px] tracking-widest font-bold uppercase text-rosevia-gold px-2.5 py-1 bg-white border border-rosevia-rose/40 rounded-md shadow-xs">
+            <span className="text-[9px] tracking-widest font-bold uppercase text-rosevia-gold px-2.5 py-1 bg-rosevia-green border border-rosevia-rose/30 rounded-md shadow-xs">
               Active Cycle
             </span>
             <h2 className="text-xl font-serif text-rosevia-clay mt-2.5 font-bold">
@@ -265,13 +361,68 @@ export default function Home() {
           <div className="flex items-center space-x-4 border-t md:border-t-0 md:border-l border-rosevia-rose/20 pt-3 md:pt-0 md:pl-6 shrink-0 w-full md:w-auto">
             <div className="text-center">
               <p className="text-[9px] tracking-widest uppercase font-bold text-rosevia-clay/55">Skin Type</p>
-              <p className="text-xs font-bold text-rosevia-clay mt-0.5">{profile.skinType}</p>
+              <p className="text-xs font-bold text-rosevia-gold mt-0.5">{profile.skinType}</p>
             </div>
             <div className="h-6 w-px bg-rosevia-rose/25" />
             <div className="text-center">
               <p className="text-[9px] tracking-widest uppercase font-bold text-rosevia-clay/55">Goal</p>
-              <p className="text-xs font-bold text-rosevia-clay mt-0.5">{profile.concerns[0]}</p>
+              <p className="text-xs font-bold text-rosevia-gold mt-0.5">{profile.concerns[0]}</p>
             </div>
+          </div>
+        </div>
+
+        {/* Dynamic Scheduled Reminder Alarms Widget */}
+        <div className="glass-card p-5 space-y-4 shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Clock size={16} className="text-rosevia-gold animate-pulse" />
+              <h3 className="text-xs font-semibold tracking-widest uppercase text-rosevia-clay">Skincare Layer Alarms</h3>
+            </div>
+            <button 
+              onClick={() => navigateTo("/settings")}
+              className="text-[9px] font-bold text-rosevia-gold tracking-wider uppercase hover:underline flex items-center"
+            >
+              Configure Alarms <Settings size={10} className="ml-1" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="bg-rosevia-cream/80 border border-rosevia-rose/20 rounded-xl p-3.5 flex items-center space-x-3.5 shadow-xs">
+              <div className="w-8 h-8 rounded-full bg-rosevia-rose/25 flex items-center justify-center shrink-0">
+                <Bell size={14} className="text-rosevia-gold" />
+              </div>
+              <div>
+                <p className="text-[9px] tracking-wider uppercase font-bold text-rosevia-clay/65 leading-none">Serum Reminder</p>
+                <p className="text-xs font-bold text-rosevia-charcoal mt-1">AM {reminders.serumTimeAM} | PM {reminders.serumTimePM}</p>
+              </div>
+            </div>
+            <div className="bg-rosevia-cream/80 border border-rosevia-rose/20 rounded-xl p-3.5 flex items-center space-x-3.5 shadow-xs">
+              <div className="w-8 h-8 rounded-full bg-rosevia-rose/25 flex items-center justify-center shrink-0">
+                <Bell size={14} className="text-rosevia-gold" />
+              </div>
+              <div>
+                <p className="text-[9px] tracking-wider uppercase font-bold text-rosevia-clay/65 leading-none">Moisturizer Alarm</p>
+                <p className="text-xs font-bold text-rosevia-charcoal mt-1">AM {reminders.moistTimeAM} | PM {reminders.moistTimePM}</p>
+              </div>
+            </div>
+            <div className="bg-rosevia-cream/80 border border-rosevia-rose/20 rounded-xl p-3.5 flex items-center space-x-3.5 shadow-xs">
+              <div className="w-8 h-8 rounded-full bg-rosevia-rose/25 flex items-center justify-center shrink-0">
+                <Sun size={14} className="text-rosevia-gold" />
+              </div>
+              <div>
+                <p className="text-[9px] tracking-wider uppercase font-bold text-rosevia-clay/65 leading-none">Sunscreen Alarm</p>
+                <p className="text-xs font-bold text-rosevia-charcoal mt-1">{reminders.spfTime} (Every {reminders.spfInterval}h)</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Simulated Active Push-Alert Banner */}
+          <div className="bg-rosevia-green border-l-2 border-rosevia-gold p-3 rounded-xl flex items-center justify-between text-[11px] font-medium text-rosevia-clay animate-pulse">
+            <span className="flex items-center gap-2">
+              <Bell size={12} className="text-rosevia-gold animate-bounce shrink-0" />
+              <span>Reminder Active: Sunscreen (SPF) reapplication alert scheduled in <b>1 hour 45 minutes</b></span>
+            </span>
+            <span className="text-[9px] uppercase tracking-widest font-bold text-rosevia-gold shrink-0">Simulated Alert</span>
           </div>
         </div>
 
@@ -284,14 +435,14 @@ export default function Home() {
                 <MapPin size={16} className="text-rosevia-clay" />
                 <h3 className="text-xs font-bold tracking-widest uppercase text-rosevia-clay">Climate Intelligence</h3>
               </div>
-              <div className="flex bg-white/70 rounded-lg p-0.5 border border-rosevia-rose/30 self-start">
+              <div className="flex bg-rosevia-cream/60 rounded-lg p-0.5 border border-rosevia-rose/30 self-start">
                 {["Seoul", "Miami", "Sydney", "London"].map((city) => (
                   <button
                     key={city}
                     onClick={() => setClimateSim(city)}
                     className={`text-[9px] font-bold px-2.5 py-1 rounded transition-all duration-300 cursor-pointer ${
                       climateSim === city 
-                        ? "bg-rosevia-clay text-rosevia-cream shadow-xs"
+                        ? "bg-rosevia-gold text-rosevia-cream shadow-xs"
                         : "text-rosevia-clay/70 hover:text-rosevia-clay"
                     }`}
                   >
@@ -302,14 +453,14 @@ export default function Home() {
             </div>
 
             {/* Simulated Weather Metrics */}
-            <div className="grid grid-cols-3 gap-2 bg-white/80 border border-rosevia-rose/20 rounded-xl p-3 text-center shadow-xs">
+            <div className="grid grid-cols-3 gap-2 bg-rosevia-cream/80 border border-rosevia-rose/20 rounded-xl p-3 text-center shadow-xs">
               <div>
                 <p className="text-[9px] tracking-wider uppercase font-bold text-rosevia-clay/60">UV Index</p>
-                <p className="text-xs font-bold text-rosevia-clay mt-0.5">{env.uv}</p>
+                <p className="text-xs font-bold text-rosevia-gold mt-0.5">{env.uv}</p>
               </div>
               <div>
                 <p className="text-[9px] tracking-wider uppercase font-bold text-rosevia-clay/60">Humidity</p>
-                <p className="text-xs font-bold text-rosevia-clay mt-0.5">{env.humidity}</p>
+                <p className="text-xs font-bold text-rosevia-gold mt-0.5">{env.humidity}</p>
               </div>
               <div>
                 <p className="text-[9px] tracking-wider uppercase font-bold text-rosevia-clay/60">Recommendation</p>
@@ -320,7 +471,7 @@ export default function Home() {
             </div>
 
             {/* Smart Environmental Adaptive Tip */}
-            <div className="bg-white/85 border-l-2 border-rosevia-gold p-3.5 rounded-r-xl shadow-xs">
+            <div className="bg-rosevia-cream border-l-2 border-rosevia-gold p-3.5 rounded-r-xl shadow-xs">
               <p className="text-[10px] font-bold text-rosevia-clay flex items-center">
                 <AlertCircle size={12} className="mr-1.5 text-rosevia-gold shrink-0" /> {env.title}
               </p>
@@ -344,7 +495,7 @@ export default function Home() {
                   onChange={(e) => setCycleSync(e.target.checked)} 
                   className="sr-only peer" 
                 />
-                <div className="w-9 h-5 bg-rosevia-rose/40 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rosevia-clay"></div>
+                <div className="w-9 h-5 bg-rosevia-rose/30 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rosevia-gold"></div>
                 <span className="ml-2.5 text-[9px] font-bold text-rosevia-clay/80 uppercase">
                   {cycleSync ? "Sync Active" : "Sync Off"}
                 </span>
@@ -354,16 +505,16 @@ export default function Home() {
             {cycleSync ? (
               <div className="space-y-3.5 animate-fade-in flex-1 flex flex-col justify-center">
                 {/* SVG Biological Cycle Progress Dial */}
-                <div className="flex items-center justify-between bg-white/50 border border-rosevia-rose/25 rounded-xl p-3.5 shadow-xs">
+                <div className="flex items-center justify-between bg-rosevia-cream border border-rosevia-rose/25 rounded-xl p-3.5 shadow-xs">
                   <div className="flex items-center space-x-3">
                     <div className="relative w-9 h-9 flex items-center justify-center shrink-0">
                       <svg className="absolute w-full h-full transform -rotate-90">
-                        <circle cx="18" cy="18" r="14" stroke="#EAD2C6" strokeWidth="2.5" fill="transparent" opacity="0.3" />
+                        <circle cx="18" cy="18" r="14" stroke="#688A7D" strokeWidth="2.5" fill="transparent" opacity="0.3" />
                         <circle 
                           cx="18" 
                           cy="18" 
                           r="14" 
-                          stroke="#C5A880" 
+                          stroke="#D4AF37" 
                           strokeWidth="2.5" 
                           fill="transparent" 
                           strokeDasharray={88}
@@ -379,7 +530,7 @@ export default function Home() {
                       <select 
                         value={cyclePhase} 
                         onChange={(e) => setCyclePhase(e.target.value)}
-                        className="text-xs font-bold text-rosevia-clay bg-transparent border-0 focus:ring-0 focus:outline-none p-0 cursor-pointer"
+                        className="text-xs font-bold text-rosevia-gold bg-transparent border-0 focus:ring-0 focus:outline-none p-0 cursor-pointer"
                       >
                         <option value="Follicular (Glow)">Follicular (Glow Phase)</option>
                         <option value="Luteal (Barrier Protection)">Luteal (Barrier Protection)</option>
@@ -408,11 +559,11 @@ export default function Home() {
                 </div>
               </div>
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center text-center p-5 border border-dashed border-rosevia-rose/40 rounded-2xl bg-white/20">
-                <HelpCircle size={24} className="text-rosevia-rose/85 mb-2" />
+              <div className="flex-1 flex flex-col items-center justify-center text-center p-5 border border-dashed border-rosevia-rose/30 rounded-2xl bg-rosevia-cream/30">
+                <HelpCircle size={24} className="text-rosevia-rose/85 mb-2 animate-bounce" />
                 <p className="text-xs font-bold text-rosevia-clay/80 uppercase tracking-wider">Integrate Hormonal Syncing</p>
-                <p className="text-[10px] text-rosevia-clay/60 mt-1 max-w-[200px] leading-relaxed font-medium">
-                  Adapt routines to biological hormone cycles to buffer micro-breakouts before they occur.
+                <p className="text-[9px] text-rosevia-clay mt-1 max-w-[200px] leading-relaxed font-semibold">
+                  Adapt routines to biological hormone cycles to buffer micro-breakouts before they occur. Go to Settings to toggle sync.
                 </p>
               </div>
             )}
@@ -431,8 +582,8 @@ export default function Home() {
                 onClick={() => setActiveDay(day)}
                 className={`w-8 h-8 text-[10px] font-bold rounded-full flex items-center justify-center uppercase transition-all duration-300 cursor-pointer ${
                   activeDay === day 
-                    ? "bg-rosevia-clay text-rosevia-cream shadow"
-                    : "text-rosevia-clay/60 hover:text-rosevia-clay bg-white border border-rosevia-rose/20"
+                    ? "bg-rosevia-gold text-rosevia-cream shadow"
+                    : "text-rosevia-clay bg-rosevia-cream border border-rosevia-rose/20 hover:border-rosevia-gold/40"
                 }`}
               >
                 {day.substring(0, 1)}
@@ -451,7 +602,7 @@ export default function Home() {
                 <Sun size={18} className="text-rosevia-gold animate-spin duration-10000" />
                 <h4 className="text-sm font-serif font-bold text-rosevia-clay uppercase tracking-wider">AM Protective Ritual</h4>
               </div>
-              <span className="text-[9px] font-bold tracking-wider uppercase bg-rosevia-rose/35 px-2.5 py-1 rounded text-rosevia-clay">
+              <span className="text-[9px] font-bold tracking-wider uppercase bg-rosevia-rose/20 px-2.5 py-1 rounded text-rosevia-clay">
                 {activeRoutineDetails.am.length} Layers
               </span>
             </div>
@@ -460,19 +611,19 @@ export default function Home() {
               {activeRoutineDetails.am.map((product, idx) => (
                 <div 
                   key={idx}
-                  className="flex items-start bg-white/60 border border-rosevia-rose/20 rounded-xl p-3.5 hover:border-rosevia-gold/40 transition-all shadow-xs"
+                  className="flex items-start bg-rosevia-cream/80 border border-rosevia-rose/20 rounded-xl p-3.5 hover:border-rosevia-gold/40 transition-all shadow-xs"
                 >
-                  <div className="w-6 h-6 rounded-full border border-rosevia-rose/60 bg-rosevia-cream flex items-center justify-center shrink-0 mt-0.5 mr-3.5 text-[10px] font-bold text-rosevia-clay shadow-xs">
+                  <div className="w-6 h-6 rounded-full border border-rosevia-rose/40 bg-rosevia-cream flex items-center justify-center shrink-0 mt-0.5 mr-3.5 text-[10px] font-bold text-rosevia-gold shadow-xs">
                     {idx + 1}
                   </div>
                   <div>
                     <p className={`text-xs font-bold text-rosevia-charcoal ${completedAM ? "line-through text-rosevia-clay/45" : ""}`}>
                       {product}
                     </p>
-                    <p className="text-[10px] text-rosevia-clay/70 mt-1 font-medium leading-relaxed">
+                    <p className="text-[10px] text-rosevia-clay mt-1 font-semibold leading-relaxed">
                       {product.includes("Cleans") ? "Lather onto damp face, wash off with lukewarm water." :
-                       product.includes("Vit") || product.includes("Niacin") ? "Pat 3 drops into skin, wait 2 minutes." :
-                       product.includes("SPF") ? "Apply two-finger lengths as final protective lock." :
+                       product.includes("Vit") || product.includes("Niacin") || product.includes("Serum") ? `Pat into skin at your scheduled ${reminders.serumTimeAM} AM alarm, wait 2 mins.` :
+                       product.includes("SPF") || product.includes("Sunscreen") ? `Apply final protective lock at scheduled ${reminders.spfTime} AM.` :
                        "Apply evenly and tap gently to aid cellular absorption."}
                     </p>
                   </div>
@@ -488,7 +639,7 @@ export default function Home() {
             ) : (
               <button
                 onClick={() => triggerCompletion("am")}
-                className="w-full py-4 rounded-xl bg-rosevia-clay text-rosevia-cream text-xs tracking-widest font-bold uppercase hover:bg-rosevia-charcoal shadow hover:shadow-md transition-all duration-300 cursor-pointer flex items-center justify-center"
+                className="w-full py-4 rounded-xl bg-rosevia-gold text-rosevia-cream text-xs tracking-widest font-bold uppercase hover:bg-rosevia-rose transition-all shadow hover:shadow-md duration-300 cursor-pointer flex items-center justify-center"
               >
                 Log AM Completed <Check size={14} className="ml-2 stroke-[3]" />
               </button>
@@ -502,7 +653,7 @@ export default function Home() {
                 <Moon size={18} className="text-rosevia-clay" />
                 <h4 className="text-sm font-serif font-bold text-rosevia-clay uppercase tracking-wider">PM Restorative Ritual</h4>
               </div>
-              <span className="text-[9px] font-bold tracking-wider uppercase bg-rosevia-rose/35 px-2.5 py-1 rounded text-rosevia-clay">
+              <span className="text-[9px] font-bold tracking-wider uppercase bg-rosevia-rose/20 px-2.5 py-1 rounded text-rosevia-clay">
                 {activeRoutineDetails.pm.length} Layers
               </span>
             </div>
@@ -511,24 +662,24 @@ export default function Home() {
               {activeRoutineDetails.pm.map((product, idx) => (
                 <div 
                   key={idx}
-                  className="flex items-start bg-white/60 border border-rosevia-rose/20 rounded-xl p-3.5 hover:border-rosevia-gold/40 transition-all shadow-xs"
+                  className="flex items-start bg-rosevia-cream/80 border border-rosevia-rose/20 rounded-xl p-3.5 hover:border-rosevia-gold/40 transition-all shadow-xs"
                 >
-                  <div className="w-6 h-6 rounded-full border border-rosevia-rose/60 bg-rosevia-cream flex items-center justify-center shrink-0 mt-0.5 mr-3.5 text-[10px] font-bold text-rosevia-clay shadow-xs">
+                  <div className="w-6 h-6 rounded-full border border-rosevia-rose/40 bg-rosevia-cream flex items-center justify-center shrink-0 mt-0.5 mr-3.5 text-[10px] font-bold text-rosevia-gold shadow-xs">
                     {idx + 1}
                   </div>
                   <div>
                     <p className={`text-xs font-bold text-rosevia-charcoal ${completedPM ? "line-through text-rosevia-clay/45" : ""}`}>
                       {product}
                     </p>
-                    <p className="text-[10px] text-rosevia-clay/70 mt-1 font-medium leading-relaxed">
+                    <p className="text-[10px] text-rosevia-clay mt-1 font-semibold leading-relaxed">
                       {product.includes("Salic") || product.includes("Glycol") || product.includes("Retin") ? (
                         <span className="text-rosevia-terracotta font-semibold flex items-center mt-0.5">
-                          <Clock size={10} className="mr-1" /> Active Layer — Wait 5 minutes before sealing.
+                          <Clock size={10} className="mr-1" /> Active Layer scheduled at {reminders.serumTimePM} PM — Wait 5 mins.
                         </span>
                       ) : product.includes("Cleans") ? (
                         "Double cleanse: 1 min oil wash, 1 min water lather."
                       ) : (
-                        "Tap over active layers to form an emollient moisture seal."
+                        `Tap over active layers to form an emollient moisture seal at ${reminders.moistTimePM} PM.`
                       )}
                     </p>
                   </div>
@@ -544,7 +695,7 @@ export default function Home() {
             ) : (
               <button
                 onClick={() => triggerCompletion("pm")}
-                className="w-full py-4 rounded-xl bg-rosevia-clay text-rosevia-cream text-xs tracking-widest font-bold uppercase hover:bg-rosevia-charcoal shadow hover:shadow-md transition-all duration-300 cursor-pointer flex items-center justify-center"
+                className="w-full py-4 rounded-xl bg-rosevia-gold text-rosevia-cream text-xs tracking-widest font-bold uppercase hover:bg-rosevia-rose transition-all shadow hover:shadow-md duration-300 cursor-pointer flex items-center justify-center"
               >
                 Log PM Completed <Check size={14} className="ml-2 stroke-[3]" />
               </button>
@@ -558,9 +709,9 @@ export default function Home() {
           <h4 className="text-xs font-bold tracking-widest uppercase text-rosevia-clay mb-3">Skin Coaching Tips</h4>
           <div className="space-y-2">
             {routine.tips.map((tip, idx) => (
-              <div key={idx} className="flex items-start text-xs text-rosevia-clay/85 leading-relaxed bg-white/40 p-3 rounded-xl border border-rosevia-rose/20 shadow-xs">
+              <div key={idx} className="flex items-start text-xs text-rosevia-clay leading-relaxed bg-rosevia-cream/80 p-3 rounded-xl border border-rosevia-rose/20 shadow-xs">
                 <span className="text-rosevia-gold font-bold mr-2">✦</span>
-                <p className="font-medium">{tip}</p>
+                <p className="font-semibold">{tip}</p>
               </div>
             ))}
           </div>
@@ -568,7 +719,7 @@ export default function Home() {
 
       </div>
 
-      {/* FLOATING BOTTOM PREMIUM NAVIGATION DOCK (BALANCED FOR 6 ITEMS) */}
+      {/* FLOATING BOTTOM PREMIUM NAVIGATION DOCK (BALANCED FOR 6 ITEMS WITH SETTINGS) */}
       <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md glass-panel py-3.5 px-6 rounded-2xl flex justify-between items-center shadow-lg border border-rosevia-rose/40 z-50">
         <button 
           onClick={() => navigateTo("/")}
@@ -579,38 +730,38 @@ export default function Home() {
         </button>
         <button 
           onClick={() => navigateTo("/analysis")}
-          className="flex flex-col items-center text-rosevia-clay/70 hover:text-rosevia-clay shrink-0 cursor-pointer"
+          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
         >
           <Activity size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Scan</span>
         </button>
         <button 
           onClick={() => navigateTo("/cabinet")}
-          className="flex flex-col items-center text-rosevia-clay/70 hover:text-rosevia-clay shrink-0 cursor-pointer"
+          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
         >
           <FolderHeart size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Cabinet</span>
         </button>
         <button 
           onClick={() => navigateTo("/checker")}
-          className="flex flex-col items-center text-rosevia-clay/70 hover:text-rosevia-clay shrink-0 cursor-pointer"
+          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
         >
           <AlertCircle size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Checker</span>
         </button>
         <button 
-          onClick={() => navigateTo("/chat")}
-          className="flex flex-col items-center text-rosevia-clay/70 hover:text-rosevia-clay shrink-0 cursor-pointer"
-        >
-          <MessageSquareHeart size={18} />
-          <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Chat</span>
-        </button>
-        <button 
           onClick={() => navigateTo("/journal")}
-          className="flex flex-col items-center text-rosevia-clay/70 hover:text-rosevia-clay shrink-0 cursor-pointer animate-none"
+          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer animate-none"
         >
           <BookOpen size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Diary</span>
+        </button>
+        <button 
+          onClick={() => navigateTo("/settings")}
+          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer animate-none"
+        >
+          <Settings size={18} />
+          <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Settings</span>
         </button>
       </nav>
 
