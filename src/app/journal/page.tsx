@@ -14,14 +14,12 @@ import {
   Brain,
   Coffee,
   CheckCircle,
-  Sparkles,
-  Heart,
-  Users
+  Sparkles
 } from "lucide-react";
 
 interface DailyLog {
-  water: number; // glasses
-  sleep: number; // hours
+  water: number; 
+  sleep: number; 
   stress: "Low" | "Moderate" | "High";
   diet: string[];
   menstrualPhase?: string;
@@ -45,11 +43,10 @@ export default function SkinJournal() {
   };
 
   useEffect(() => {
-    // Look up if cycle sync was toggled in home dashboard
     const savedProfile = localStorage.getItem("rosevia_profile");
     if (savedProfile) {
       const parsed = JSON.parse(savedProfile);
-      setMenstrualSync(parsed.climate === "Moderate" ? true : false); // Mock check
+      setMenstrualSync(parsed.climate === "Moderate" ? true : false); 
     }
   }, []);
 
@@ -97,7 +94,7 @@ export default function SkinJournal() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
           
           {/* Daily Tracker Inputs Panel */}
-          <div className="md:col-span-7 glass-card p-5 space-y-6">
+          <div className="md:col-span-7 glass-card p-5 space-y-6 shadow-sm">
             <h3 className="text-xs font-semibold tracking-widest uppercase text-rosevia-clay">Log Daily Skin Metrics</h3>
 
             {/* 1. Interactive Water Glass Tracker */}
@@ -111,7 +108,7 @@ export default function SkinJournal() {
                   <button
                     key={i}
                     onClick={() => setWater(i + 1)}
-                    className={`w-8 h-10 rounded-b-lg border-2 border-t-0 flex flex-col items-center justify-end pb-1 text-[9px] font-bold cursor-pointer transition-all ${
+                    className={`w-8 h-10 rounded-b-lg border-2 border-t-0 flex flex-col items-center justify-end pb-1 text-[9px] font-bold cursor-pointer transition-all duration-300 shadow-xs ${
                       water > i 
                         ? "bg-blue-100 border-blue-400 text-blue-500 scale-105"
                         : "bg-white border-rosevia-rose/30 text-rosevia-clay/40"
@@ -126,7 +123,7 @@ export default function SkinJournal() {
             {/* 2. Sleep Hours dial Slider */}
             <div className="space-y-3">
               <div className="flex justify-between items-center text-xs font-semibold text-rosevia-clay">
-                <span className="flex items-center"><Moon size={14} className="mr-1.5 text-indigo-400" /> Cellular Rest (Sleep Hours)</span>
+                <span className="flex items-center"><Moon size={14} className="mr-1.5 text-indigo-400 animate-pulse" /> Cellular Rest (Sleep Hours)</span>
                 <span className="text-rosevia-gold font-bold">{sleep} Hours</span>
               </div>
               <input
@@ -137,7 +134,7 @@ export default function SkinJournal() {
                 onChange={(e) => setSleep(parseInt(e.target.value))}
                 className="w-full accent-rosevia-gold bg-rosevia-cream h-2 rounded-lg cursor-pointer border border-rosevia-rose/25"
               />
-              <div className="flex justify-between text-[9px] text-rosevia-clay/60 uppercase font-semibold">
+              <div className="flex justify-between text-[9px] text-rosevia-clay/60 uppercase font-bold tracking-wider">
                 <span>4h (Compromised)</span>
                 <span>8h (Ideal Renewal)</span>
                 <span>12h (Max recovery)</span>
@@ -148,7 +145,7 @@ export default function SkinJournal() {
             <div className="space-y-3">
               <div className="flex justify-between items-center text-xs font-semibold text-rosevia-clay">
                 <span className="flex items-center"><Brain size={14} className="mr-1.5 text-rosevia-clay" /> Cortisol (Stress Level)</span>
-                <span className={`font-bold px-2 py-0.5 rounded text-[10px] uppercase border ${
+                <span className={`font-bold px-2.5 py-0.5 rounded text-[9px] uppercase border tracking-wider shadow-xs ${
                   stress === "High" 
                     ? "bg-rose-50 border-rose-200 text-rose-700" 
                     : stress === "Moderate"
@@ -163,9 +160,9 @@ export default function SkinJournal() {
                   <button
                     key={level}
                     onClick={() => setStress(level)}
-                    className={`py-3 px-2 rounded-xl text-xs font-medium border text-center transition-all cursor-pointer ${
+                    className={`py-3 px-2 rounded-xl text-xs font-bold border text-center transition-all duration-300 cursor-pointer shadow-xs ${
                       stress === level 
-                        ? "bg-rosevia-rose/25 border-rosevia-gold text-rosevia-charcoal font-semibold shadow-sm"
+                        ? "bg-rosevia-rose/25 border-rosevia-gold text-rosevia-charcoal font-semibold shadow-xs"
                         : "bg-white border-rosevia-rose/20 hover:border-rosevia-rose/50"
                     }`}
                   >
@@ -179,7 +176,7 @@ export default function SkinJournal() {
             <div className="space-y-3">
               <div className="flex justify-between items-center text-xs font-semibold text-rosevia-clay">
                 <span className="flex items-center"><Coffee size={14} className="mr-1.5 text-rosevia-clay" /> Nutritional Triggers (Diet notes)</span>
-                <span className="text-[10px] text-rosevia-clay/60 font-medium">Select breakouts triggers</span>
+                <span className="text-[9px] text-rosevia-clay/60 font-bold uppercase tracking-wider">Select breakout triggers</span>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {[
@@ -193,20 +190,20 @@ export default function SkinJournal() {
                     <button
                       key={item.id}
                       onClick={() => handleDietToggle(item.id)}
-                      className={`flex items-start text-left p-3 rounded-xl transition-all duration-300 border cursor-pointer ${
+                      className={`flex items-start text-left p-3 rounded-xl transition-all duration-300 border cursor-pointer shadow-xs ${
                         active 
-                          ? "bg-rosevia-rose/25 border-rosevia-gold shadow-sm"
+                          ? "bg-rosevia-rose/25 border-rosevia-gold shadow-xs"
                           : "bg-white border-rosevia-rose/20 hover:border-rosevia-rose/50"
                       }`}
                     >
                       <div className={`w-4 h-4 rounded border flex items-center justify-center mt-0.5 mr-2.5 shrink-0 transition-all ${
-                        active ? "bg-rosevia-gold border-rosevia-gold text-white" : "border-rosevia-rose/50 bg-white"
+                        active ? "bg-rosevia-gold border-rosevia-gold text-white shadow-xs" : "border-rosevia-rose/50 bg-white"
                       }`}>
                         {active && <CheckCircle size={10} className="stroke-[3]" />}
                       </div>
                       <div>
-                        <p className="font-semibold text-[11px] text-rosevia-charcoal leading-tight">{item.label}</p>
-                        <p className="text-[9px] text-rosevia-clay/70 mt-0.5">{item.desc}</p>
+                        <p className="font-bold text-[11px] text-rosevia-charcoal leading-tight">{item.label}</p>
+                        <p className="text-[9px] text-rosevia-clay/70 mt-1 font-medium leading-relaxed">{item.desc}</p>
                       </div>
                     </button>
                   );
@@ -221,14 +218,14 @@ export default function SkinJournal() {
                 value={customNotes}
                 onChange={(e) => setCustomNotes(e.target.value)}
                 placeholder="Log physical skin flareups, dry itching spots, active hormonal pimples..."
-                className="w-full h-20 bg-white border border-rosevia-rose/30 rounded-xl p-3 text-xs focus:ring-1 focus:ring-rosevia-gold focus:outline-none placeholder-rosevia-clay/40 resize-none font-medium text-rosevia-charcoal"
+                className="w-full h-20 bg-white border border-rosevia-rose/30 rounded-xl p-3 text-xs focus:ring-1 focus:ring-rosevia-gold focus:outline-none placeholder-rosevia-clay/40 resize-none font-medium text-rosevia-charcoal shadow-inner"
               />
             </div>
 
             {/* Save Log Action button */}
             <button
               onClick={saveDailyLog}
-              className="w-full py-4 rounded-xl bg-rosevia-clay text-rosevia-cream text-xs tracking-widest font-semibold uppercase hover:bg-rosevia-charcoal transition-all shadow-md cursor-pointer flex items-center justify-center"
+              className="w-full py-4 rounded-xl bg-rosevia-clay text-rosevia-cream text-xs tracking-widest font-bold uppercase hover:bg-rosevia-charcoal transition-all shadow-md cursor-pointer flex items-center justify-center transform hover:-translate-y-0.5"
             >
               {isLogged ? (
                 <span className="flex items-center text-rosevia-green font-bold">
@@ -245,27 +242,27 @@ export default function SkinJournal() {
             
             {/* Correlation analysis display */}
             {showInsights ? (
-              <div className="glass-card p-5 space-y-4 border-2 border-rosevia-rose/30 bg-rosevia-rose/10 animate-fade-in">
+              <div className="glass-card p-5 space-y-4 border-2 border-rosevia-rose/30 bg-rosevia-rose/10 shadow-sm animate-fade-in">
                 <div className="flex items-center space-x-2">
                   <Sparkles size={16} className="text-rosevia-gold" />
-                  <h4 className="text-xs font-semibold tracking-widest uppercase text-rosevia-clay">Coaching Correlation Insights</h4>
+                  <h4 className="text-xs font-bold tracking-widest uppercase text-rosevia-clay">Coaching Correlation Insights</h4>
                 </div>
 
                 <div className="space-y-3.5">
-                  <div className="bg-white/70 border border-rosevia-rose/25 rounded-xl p-3 space-y-1">
-                    <p className="text-[10px] font-bold text-rosevia-terracotta flex items-center">
-                      <AlertCircle size={11} className="mr-1" /> Stress-Redness Spike Trigger
+                  <div className="bg-white/80 border border-rosevia-rose/25 rounded-xl p-3.5 space-y-1 shadow-xs">
+                    <p className="text-[10px] font-bold text-rosevia-terracotta flex items-center uppercase tracking-wider">
+                      <AlertCircle size={11} className="mr-1 shrink-0" /> Stress-Redness Spike Trigger
                     </p>
-                    <p className="text-[11px] text-rosevia-clay/90 leading-relaxed">
+                    <p className="text-[11px] text-rosevia-clay/90 leading-relaxed font-medium">
                       "Redness flareups and forehead breakouts correlate highly (**84% Pearson index**) with days logged as **High Stress** combined with **sleep under 6 hours** 48 hours prior. On these days, skip exfoliants and double Ceramides."
                     </p>
                   </div>
 
-                  <div className="bg-white/70 border border-rosevia-rose/25 rounded-xl p-3 space-y-1">
-                    <p className="text-[10px] font-bold text-rosevia-sage flex items-center">
-                      <CheckCircle size={11} className="mr-1 text-rosevia-sage" /> Hydration Glow Factor
+                  <div className="bg-white/80 border border-rosevia-rose/25 rounded-xl p-3.5 space-y-1 shadow-xs">
+                    <p className="text-[10px] font-bold text-rosevia-sage flex items-center uppercase tracking-wider">
+                      <CheckCircle size={11} className="mr-1 text-rosevia-sage shrink-0" /> Hydration Glow Factor
                     </p>
-                    <p className="text-[11px] text-rosevia-clay/90 leading-relaxed">
+                    <p className="text-[11px] text-rosevia-clay/90 leading-relaxed font-medium">
                       "Skin hydration ratings increase by 15% when water logging achieves 7+ glasses consecutively for 4 days. This keeps epidermal volume plump and speeds up post-acne mark healing cycles!"
                     </p>
                   </div>
@@ -273,24 +270,24 @@ export default function SkinJournal() {
 
                 <button
                   onClick={() => setShowInsights(false)}
-                  className="w-full py-2.5 rounded-xl bg-white border border-rosevia-rose/30 text-rosevia-clay text-[10px] font-bold tracking-wider uppercase hover:bg-rosevia-rose/10 cursor-pointer"
+                  className="w-full py-2.5 rounded-xl bg-white border border-rosevia-rose/30 text-rosevia-clay text-[10px] font-bold tracking-wider uppercase hover:bg-rosevia-rose/10 cursor-pointer shadow-xs"
                 >
                   Close Insights
                 </button>
               </div>
             ) : (
               /* Diagnostic Trigger Banner */
-              <div className="glass-card p-6 text-center flex flex-col items-center justify-center space-y-4 aspect-[4/3.5] border border-dashed border-rosevia-rose/50 bg-white/30">
+              <div className="glass-card p-6 text-center flex flex-col items-center justify-center space-y-4 aspect-[4/3.5] border border-dashed border-rosevia-rose/50 bg-white/30 shadow-xs">
                 <div className="w-12 h-12 rounded-full bg-rosevia-rose/20 flex items-center justify-center">
                   <TrendingUp size={22} className="text-rosevia-clay" />
                 </div>
-                <h3 className="text-sm font-serif text-rosevia-clay">Skin Habit Correlations</h3>
-                <p className="text-xs text-rosevia-clay/80 leading-relaxed">
+                <h3 className="text-sm font-serif font-bold text-rosevia-clay uppercase tracking-wider">Skin Habit Correlations</h3>
+                <p className="text-xs text-rosevia-clay/80 leading-relaxed font-medium">
                   Log your water, sleep, stress, and triggers over 7 days. Our AI will run regression algorithms to map which external rhythm trigger breakouts or barrier flushes.
                 </p>
                 <button
                   onClick={() => setShowInsights(true)}
-                  className="py-3 px-5 rounded-xl bg-rosevia-clay text-rosevia-cream text-xs font-semibold tracking-wider uppercase hover:bg-rosevia-charcoal transition-all shadow cursor-pointer flex items-center"
+                  className="py-3 px-5 rounded-xl bg-rosevia-clay text-rosevia-cream text-xs font-bold tracking-widest uppercase hover:bg-rosevia-charcoal transition-all shadow cursor-pointer flex items-center transform hover:-translate-y-0.5"
                 >
                   Audit My Rhythm Insights <Sparkles size={13} className="ml-1.5 animate-spin duration-3000" />
                 </button>
@@ -302,8 +299,8 @@ export default function SkinJournal() {
 
       </div>
 
-      {/* FLOATING BOTTOM NAVIGATION */}
-      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-xl glass-panel py-3 px-4 rounded-2xl flex justify-between items-center shadow-lg border border-rosevia-rose/40 z-50">
+      {/* FLOATING BOTTOM NAVIGATION (SPACED FOR 6 ITEMS) */}
+      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md glass-panel py-3.5 px-6 rounded-2xl flex justify-between items-center shadow-lg border border-rosevia-rose/40 z-50">
         <button 
           onClick={() => navigateTo("/")}
           className="flex flex-col items-center text-rosevia-clay/70 hover:text-rosevia-clay shrink-0 cursor-pointer"
@@ -341,17 +338,10 @@ export default function SkinJournal() {
         </button>
         <button 
           onClick={() => navigateTo("/journal")}
-          className="flex flex-col items-center text-rosevia-gold shrink-0 cursor-pointer"
+          className="flex flex-col items-center text-rosevia-gold shrink-0 cursor-pointer animate-none"
         >
           <BookOpen size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Diary</span>
-        </button>
-        <button 
-          onClick={() => navigateTo("/social")}
-          className="flex flex-col items-center text-rosevia-clay/70 hover:text-rosevia-clay shrink-0 cursor-pointer"
-        >
-          <Users size={18} />
-          <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Friends</span>
         </button>
       </nav>
 

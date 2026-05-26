@@ -10,9 +10,8 @@ import {
   AlertCircle, 
   MessageSquareHeart, 
   BookOpen,
-  ArrowRight,
   Info,
-  Users
+  Loader2
 } from "lucide-react";
 
 interface Message {
@@ -33,7 +32,6 @@ export default function SkinChat() {
   };
 
   useEffect(() => {
-    // Load local context
     const savedProfile = localStorage.getItem("rosevia_profile");
     const savedRoutine = localStorage.getItem("rosevia_routine");
     
@@ -45,7 +43,6 @@ export default function SkinChat() {
       setRoutine({ routineName: "Clear & Balance Cycle" });
     }
 
-    // Set greeting
     setMessages([
       {
         role: "assistant",
@@ -55,7 +52,6 @@ export default function SkinChat() {
   }, []);
 
   useEffect(() => {
-    // Scroll to bottom on new messages
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
@@ -122,16 +118,35 @@ export default function SkinChat() {
           </div>
         </header>
 
+        {/* Dynamic Professional Virtual Assistant Card */}
+        <div className="glass-card p-4 flex items-center justify-between shadow-xs">
+          <div className="flex items-center space-x-3.5">
+            {/* Visual Medical Clinic Avatar */}
+            <div className="relative w-11 h-11 rounded-full bg-rosevia-rose/30 flex items-center justify-center border border-rosevia-gold/30 shrink-0">
+              <span className="font-serif text-xs font-bold text-rosevia-clay">Dr. R</span>
+              {/* Active Pulsing green light */}
+              <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white animate-pulse" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-rosevia-charcoal leading-none">Dr. Rosevia Nova</p>
+              <p className="text-[9px] text-rosevia-clay/65 font-bold uppercase mt-1 tracking-wider">Clinical Dermal AI Consultant</p>
+            </div>
+          </div>
+          <div className="hidden sm:block text-[10px] text-rosevia-clay/70 font-semibold bg-rosevia-cream border border-rosevia-rose/25 px-2.5 py-1 rounded-md">
+            Profile Sync: Checked
+          </div>
+        </div>
+
         {/* Sync Indicator Info Card */}
-        <div className="glass-card p-3.5 flex items-center space-x-2 text-[11px] text-rosevia-clay leading-relaxed">
+        <div className="bg-white/55 border border-rosevia-rose/20 rounded-xl p-3 flex items-center space-x-2 text-[10px] text-rosevia-clay leading-relaxed shadow-xs font-semibold">
           <Info size={14} className="text-rosevia-gold shrink-0" />
           <p>
-            Connected to your biological skin profile: <span className="font-bold">{profile?.skinType || "Combination"}</span> | Concerns: <span className="font-bold">{profile?.concerns?.join(", ") || "Acne"}</span>.
+            Connected to biological skin profile: <span className="font-bold text-rosevia-charcoal">{profile?.skinType || "Combination"}</span> | Concerns: <span className="font-bold text-rosevia-charcoal">{profile?.concerns?.join(", ") || "Acne"}</span>.
           </p>
         </div>
 
         {/* Conversational Screen */}
-        <div className="flex-1 glass-card border border-rosevia-rose/30 bg-white/40 flex flex-col justify-between h-[450px] overflow-hidden rounded-2xl">
+        <div className="flex-1 glass-card border border-rosevia-rose/30 bg-white/40 flex flex-col justify-between h-[450px] overflow-hidden rounded-2xl shadow-sm">
           
           {/* Scrollable message thread */}
           <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 fade-bottom">
@@ -141,13 +156,12 @@ export default function SkinChat() {
                 className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} animate-fade-in`}
               >
                 <div 
-                  className={`max-w-[85%] sm:max-w-[75%] rounded-2xl p-3.5 text-xs leading-relaxed shadow-sm ${
+                  className={`max-w-[85%] sm:max-w-[75%] rounded-2xl p-3.5 text-xs leading-relaxed shadow-xs ${
                     m.role === "user"
                       ? "bg-rosevia-clay text-rosevia-cream rounded-tr-none font-medium"
                       : "bg-white border border-rosevia-rose/25 text-rosevia-charcoal rounded-tl-none font-medium"
                   }`}
                 >
-                  {/* Clean line-breaks formatting */}
                   <p className="whitespace-pre-line">{m.content}</p>
                 </div>
               </div>
@@ -155,8 +169,8 @@ export default function SkinChat() {
 
             {/* Typing Loader Indicator */}
             {loading && (
-              <div className="flex justify-start animate-pulse">
-                <div className="bg-white border border-rosevia-rose/25 rounded-2xl rounded-tl-none p-3.5 flex items-center space-x-1.5 shrink-0">
+              <div className="flex justify-start">
+                <div className="bg-white border border-rosevia-rose/25 rounded-2xl rounded-tl-none p-3.5 flex items-center space-x-1.5 shrink-0 shadow-xs">
                   <div className="w-1.5 h-1.5 rounded-full bg-rosevia-gold animate-bounce" />
                   <div className="w-1.5 h-1.5 rounded-full bg-rosevia-gold animate-bounce delay-150" />
                   <div className="w-1.5 h-1.5 rounded-full bg-rosevia-gold animate-bounce delay-300" />
@@ -178,7 +192,7 @@ export default function SkinChat() {
                 key={i}
                 onClick={() => handleQuickPrompt(prompt)}
                 disabled={loading}
-                className="text-[10px] font-bold px-3 py-1.5 rounded-full bg-white border border-rosevia-rose/25 hover:border-rosevia-gold cursor-pointer transition-all text-rosevia-clay shrink-0 disabled:opacity-50"
+                className="text-[10px] font-bold px-3.5 py-1.5 rounded-full bg-white border border-rosevia-rose/25 hover:border-rosevia-gold cursor-pointer transition-all duration-300 text-rosevia-clay shrink-0 disabled:opacity-50 shadow-xs"
               >
                 {prompt}
               </button>
@@ -186,7 +200,7 @@ export default function SkinChat() {
           </div>
 
           {/* Chat Form Input box */}
-          <div className="p-3 md:p-4 border-t border-rosevia-rose/25 bg-white flex items-center gap-2">
+          <div className="p-3 md:p-4 border-t border-rosevia-rose/25 bg-white flex items-center gap-2 shadow-xs">
             <input
               type="text"
               value={inputValue}
@@ -209,8 +223,8 @@ export default function SkinChat() {
 
       </div>
 
-      {/* FLOATING BOTTOM NAVIGATION */}
-      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-xl glass-panel py-3 px-4 rounded-2xl flex justify-between items-center shadow-lg border border-rosevia-rose/40 z-50">
+      {/* FLOATING BOTTOM NAVIGATION (SPACED FOR 6 ITEMS) */}
+      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md glass-panel py-3.5 px-6 rounded-2xl flex justify-between items-center shadow-lg border border-rosevia-rose/40 z-50">
         <button 
           onClick={() => navigateTo("/")}
           className="flex flex-col items-center text-rosevia-clay/70 hover:text-rosevia-clay shrink-0 cursor-pointer"
@@ -248,17 +262,10 @@ export default function SkinChat() {
         </button>
         <button 
           onClick={() => navigateTo("/journal")}
-          className="flex flex-col items-center text-rosevia-clay/70 hover:text-rosevia-clay shrink-0 cursor-pointer animate-none"
+          className="flex flex-col items-center text-rosevia-clay/70 hover:text-rosevia-clay shrink-0 cursor-pointer"
         >
           <BookOpen size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Diary</span>
-        </button>
-        <button 
-          onClick={() => navigateTo("/social")}
-          className="flex flex-col items-center text-rosevia-clay/70 hover:text-rosevia-clay shrink-0 cursor-pointer"
-        >
-          <Users size={18} />
-          <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Friends</span>
         </button>
       </nav>
 

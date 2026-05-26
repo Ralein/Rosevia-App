@@ -12,10 +12,9 @@ import {
   BookOpen,
   TrendingUp, 
   ShieldCheck, 
-  FileText,
   UploadCloud,
-  CheckCircle2,
-  Users
+  Loader2,
+  CheckCircle2
 } from "lucide-react";
 
 export default function SkinAnalysis() {
@@ -25,7 +24,6 @@ export default function SkinAnalysis() {
   const [scanStep, setScanStep] = useState(0);
   const [showReport, setShowReport] = useState(false);
   
-  // Custom mock sample faces to make testing beautiful and instant
   const sampleSelfies = [
     { id: "skin1", label: "Model Face A (Slight redness)", url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=300&auto=format&fit=crop" },
     { id: "skin2", label: "Model Face B (Balanced glow)", url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=300&auto=format&fit=crop" }
@@ -66,7 +64,6 @@ export default function SkinAnalysis() {
     setScanning(true);
     setScanStep(1);
     
-    // Step-by-step scanner prompts
     setTimeout(() => setScanStep(2), 1200);
     setTimeout(() => setScanStep(3), 2400);
     setTimeout(() => {
@@ -98,57 +95,73 @@ export default function SkinAnalysis() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
           
           {/* Selfie Upload & Animated Scanning Panel */}
-          <div className="md:col-span-5 glass-card p-5 space-y-4 flex flex-col items-center">
+          <div className="md:col-span-5 glass-card p-5 space-y-4 flex flex-col items-center shadow-sm">
             <h3 className="text-xs font-semibold tracking-widest uppercase text-rosevia-clay self-start">Selfie Capture</h3>
             
-            <div className="relative w-full aspect-[3/4] max-w-[280px] bg-rosevia-cream border border-rosevia-rose/30 rounded-2xl overflow-hidden flex flex-col items-center justify-center text-center shadow-inner group">
+            <div className="relative w-full aspect-[3/4] max-w-[280px] bg-white border border-rosevia-rose/30 rounded-2xl overflow-hidden flex flex-col items-center justify-center text-center shadow-inner group">
               {image ? (
                 <>
-                  {/* Uploaded Photo */}
                   <img src={image} alt="Selfie upload" className="w-full h-full object-cover" />
                   
-                  {/* Animated laser scan lines */}
                   {scanning && (
-                    <div className="absolute left-0 w-full h-[3px] bg-rosevia-gold/90 shadow-[0_0_12px_#C5A880] animate-scan" />
+                    <div className="absolute left-0 w-full h-[3px] bg-rosevia-gold/90 shadow-[0_0_12px_#C5A880] animate-scan z-20" />
                   )}
 
                   {/* Pulsing zone indicators */}
                   {scanning && (
                     <>
                       {/* T-Zone */}
-                      <div className="absolute top-[20%] left-1/2 -translate-x-1/2 w-8 h-8 rounded-full border border-rosevia-rose/80 animate-pulse-ring flex items-center justify-center">
+                      <div className="absolute top-[20%] left-1/2 -translate-x-1/2 w-8 h-8 rounded-full border border-rosevia-gold/80 animate-pulse-ring flex items-center justify-center">
                         <div className="w-2 h-2 rounded-full bg-rosevia-gold" />
                       </div>
                       {/* Cheeks */}
-                      <div className="absolute top-[48%] left-[28%] w-8 h-8 rounded-full border border-rosevia-rose/80 animate-pulse-ring flex items-center justify-center">
+                      <div className="absolute top-[48%] left-[28%] w-8 h-8 rounded-full border border-rosevia-gold/80 animate-pulse-ring flex items-center justify-center">
                         <div className="w-2 h-2 rounded-full bg-rosevia-gold" />
                       </div>
-                      <div className="absolute top-[48%] right-[28%] w-8 h-8 rounded-full border border-rosevia-rose/80 animate-pulse-ring flex items-center justify-center">
+                      <div className="absolute top-[48%] right-[28%] w-8 h-8 rounded-full border border-rosevia-gold/80 animate-pulse-ring flex items-center justify-center">
                         <div className="w-2 h-2 rounded-full bg-rosevia-gold" />
                       </div>
                       {/* Chin */}
-                      <div className="absolute bottom-[22%] left-1/2 -translate-x-1/2 w-8 h-8 rounded-full border border-rosevia-rose/80 animate-pulse-ring flex items-center justify-center">
+                      <div className="absolute bottom-[22%] left-1/2 -translate-x-1/2 w-8 h-8 rounded-full border border-rosevia-gold/80 animate-pulse-ring flex items-center justify-center">
                         <div className="w-2 h-2 rounded-full bg-rosevia-gold" />
                       </div>
                     </>
                   )}
                 </>
               ) : (
-                <div className="p-6 space-y-3">
-                  <UploadCloud size={32} className="text-rosevia-rose mx-auto" />
-                  <p className="text-xs font-semibold text-rosevia-clay">Upload facial photo</p>
-                  <p className="text-[10px] text-rosevia-clay/70 leading-relaxed max-w-[200px]">
-                    Ensure even natural lighting, clear camera lenses, and neutral facial expressions.
-                  </p>
+                /* GORGEOUS CLINICAL SVG FACE WIREFRAME PLACEHOLDER */
+                <div className="w-full h-full p-6 flex flex-col items-center justify-center space-y-4 bg-gradient-to-b from-rosevia-cream/50 to-white relative">
+                  <svg className="w-32 h-32 text-rosevia-rose/65 animate-pulse" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.2">
+                    {/* Face Oval */}
+                    <path d="M50,15 C28,15 28,50 28,68 C28,82 38,88 50,88 C62,88 72,82 72,68 C72,50 72,15 50,15 Z" strokeDasharray="3 3" />
+                    {/* Eyes */}
+                    <ellipse cx="40" cy="46" rx="4" ry="2" />
+                    <ellipse cx="60" cy="46" rx="4" ry="2" />
+                    {/* Nose line */}
+                    <path d="M50,42 L50,60 L47,60" />
+                    {/* Lips */}
+                    <path d="M44,70 C47,72 53,72 56,70" />
+                    <path d="M46,70 C48,69 52,69 54,70" />
+                    {/* Crosshair grid lines */}
+                    <line x1="50" y1="5" x2="50" y2="95" strokeWidth="0.5" strokeOpacity="0.4" />
+                    <line x1="5" y1="50" x2="95" y2="50" strokeWidth="0.5" strokeOpacity="0.4" />
+                  </svg>
+                  
+                  <div className="space-y-1 z-10">
+                    <p className="text-xs font-bold text-rosevia-clay tracking-wider uppercase">Biological Diagnostics</p>
+                    <p className="text-[10px] text-rosevia-clay/65 leading-relaxed max-w-[200px] font-medium mx-auto">
+                      Provide a clear facial selfie. The AI will draw scan layers and compute deep index scores.
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
 
             {/* Simulated Calibration Text */}
             {scanning && (
-              <div className="bg-rosevia-cream/80 border border-rosevia-rose/40 rounded-xl p-3 w-full text-center">
+              <div className="bg-rosevia-cream/80 border border-rosevia-rose/40 rounded-xl p-3 w-full text-center shadow-xs">
                 <p className="text-xs font-bold text-rosevia-clay flex items-center justify-center animate-pulse">
-                  <Activity size={12} className="mr-1.5 animate-spin" />
+                  <Activity size={12} className="mr-1.5 animate-spin text-rosevia-gold" />
                   {scanStep === 1 && "Calibrating T-Zone Sebum Lipids..."}
                   {scanStep === 2 && "Auditing Cheek Vascular Redness..."}
                   {scanStep === 3 && "Extracting Stratum Corneum Hydration..."}
@@ -159,18 +172,18 @@ export default function SkinAnalysis() {
             {/* Quick Sample Selector */}
             {!scanning && !showReport && (
               <div className="w-full space-y-2">
-                <p className="text-[10px] text-center tracking-wider font-semibold uppercase text-rosevia-clay/70">Or test with demo models</p>
+                <p className="text-[9px] text-center tracking-widest font-bold uppercase text-rosevia-clay/70">Or test with demo models</p>
                 <div className="grid grid-cols-2 gap-2">
                   {sampleSelfies.map((s) => (
                     <button
                       key={s.id}
                       onClick={() => selectSampleSelfie(s.url)}
-                      className={`text-[10px] p-2 border rounded-xl bg-white/40 cursor-pointer hover:border-rosevia-gold transition-all truncate text-left flex items-center space-x-2 ${
-                        image === s.url ? "border-rosevia-gold bg-rosevia-rose/20" : "border-rosevia-rose/20"
+                      className={`text-[10px] p-2 border rounded-xl bg-white/40 cursor-pointer hover:border-rosevia-gold transition-all duration-300 truncate text-left flex items-center space-x-2 shadow-xs ${
+                        image === s.url ? "border-rosevia-gold bg-rosevia-rose/25" : "border-rosevia-rose/20"
                       }`}
                     >
-                      <img src={s.url} className="w-6 h-6 rounded-full object-cover shrink-0" />
-                      <span className="truncate">{s.label}</span>
+                      <img src={s.url} className="w-6 h-6 rounded-full object-cover shrink-0 border border-rosevia-rose/40" />
+                      <span className="truncate font-semibold">{s.label}</span>
                     </button>
                   ))}
                 </div>
@@ -179,7 +192,7 @@ export default function SkinAnalysis() {
 
             {/* Controls */}
             <div className="w-full flex flex-col space-y-2 pt-2">
-              <label className="w-full py-3.5 rounded-xl border border-dashed border-rosevia-rose bg-white hover:bg-rosevia-rose/10 transition-all text-xs tracking-widest font-semibold uppercase text-rosevia-clay text-center cursor-pointer block">
+              <label className="w-full py-3.5 rounded-xl border border-dashed border-rosevia-rose bg-white hover:bg-rosevia-rose/10 transition-all text-xs tracking-widest font-bold uppercase text-rosevia-clay text-center cursor-pointer block shadow-xs">
                 <input 
                   type="file" 
                   accept="image/*" 
@@ -191,7 +204,7 @@ export default function SkinAnalysis() {
               {image && !scanning && (
                 <button
                   onClick={startVisualScan}
-                  className="w-full py-4 rounded-xl bg-rosevia-clay text-rosevia-cream text-xs tracking-widest font-semibold uppercase hover:bg-rosevia-charcoal transition-all cursor-pointer flex items-center justify-center shadow-md"
+                  className="w-full py-4 rounded-xl bg-rosevia-clay text-rosevia-cream text-xs tracking-widest font-bold uppercase hover:bg-rosevia-charcoal transition-all cursor-pointer flex items-center justify-center shadow-md transform hover:-translate-y-0.5"
                 >
                   <Camera size={14} className="mr-2" /> Start AI Diagnostics
                 </button>
@@ -202,31 +215,55 @@ export default function SkinAnalysis() {
           {/* Clinical Diagnostic Report Panel */}
           <div className="md:col-span-7 space-y-4">
             {showReport ? (
-              <div className="space-y-4 animate-fade-in">
+              <div className="space-y-5 animate-fade-in">
                 
-                {/* Score Header Card */}
-                <div className="glass-card p-5 flex items-center gap-6">
-                  {/* Glowing Radial Gauge */}
-                  <div className="relative shrink-0 w-24 h-24 rounded-full bg-rosevia-cream border border-rosevia-rose/30 flex flex-col items-center justify-center shadow-md animate-pulse-ring">
-                    <span className="text-3xl font-serif font-semibold text-rosevia-clay">84</span>
-                    <span className="text-[9px] font-bold text-rosevia-clay/60 uppercase tracking-wide">Skin Index</span>
+                {/* Score Header Card with SVG Circular Progress Ring */}
+                <div className="glass-card p-6 flex items-center gap-6 shadow-sm">
+                  {/* Glowing Radial SVG Gauge */}
+                  <div className="relative shrink-0 w-24 h-24 flex items-center justify-center">
+                    <svg className="absolute w-full h-full transform -rotate-90">
+                      <circle cx="48" cy="48" r="40" stroke="#EAD2C6" strokeWidth="4.5" fill="transparent" opacity="0.3" />
+                      <circle 
+                        cx="48" 
+                        cy="48" 
+                        r="40" 
+                        stroke="url(#skinIndexGrad)" 
+                        strokeWidth="5" 
+                        fill="transparent" 
+                        strokeDasharray={251}
+                        strokeDashoffset={251 - (251 * 84) / 100} 
+                        strokeLinecap="round"
+                        className="transition-all duration-1000 ease-out"
+                      />
+                      <defs>
+                        <linearGradient id="skinIndexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#C5A880" />
+                          <stop offset="100%" stopColor="#EAD2C6" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                    <div className="flex flex-col items-center justify-center z-10 mt-1">
+                      <span className="text-3xl font-serif font-bold text-rosevia-clay leading-none">84</span>
+                      <span className="text-[8px] font-bold text-rosevia-clay/60 uppercase tracking-widest mt-1">Index</span>
+                    </div>
                   </div>
-                  <div className="space-y-1.5">
-                    <div className="inline-flex items-center space-x-1.5 bg-rosevia-green text-rosevia-sage px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-rosevia-sage/20">
+
+                  <div className="space-y-1.5 flex-1">
+                    <div className="inline-flex items-center space-x-1.5 bg-rosevia-green text-rosevia-sage px-2.5 py-0.5 rounded text-[9px] font-bold uppercase border border-rosevia-sage/20">
                       <ShieldCheck size={10} /> <span>Barrier Stable</span>
                     </div>
-                    <h3 className="text-base font-serif font-semibold text-rosevia-clay">Clinical Diagnosis</h3>
-                    <p className="text-xs text-rosevia-clay/85 leading-relaxed">
+                    <h3 className="text-base font-serif font-bold text-rosevia-clay">Clinical Diagnosis</h3>
+                    <p className="text-xs text-rosevia-clay/85 leading-relaxed font-medium">
                       Redness and texture show a **+3.4% improvement** compared to May 19. Pore sebum congestion has dropped by 8% due to active BHA toner adherence.
                     </p>
                   </div>
                 </div>
 
                 {/* Score Breakdown Slider Cards */}
-                <div className="glass-card p-5 space-y-4">
-                  <h4 className="text-xs font-semibold tracking-widest uppercase text-rosevia-clay">Metric Breakdowns</h4>
+                <div className="glass-card p-6 space-y-4 shadow-sm">
+                  <h4 className="text-xs font-bold tracking-widest uppercase text-rosevia-clay">Metric Breakdowns</h4>
                   
-                  <div className="space-y-3.5">
+                  <div className="space-y-4">
                     {[
                       { label: "Barrier Calmness (Redness)", score: 89, color: "bg-rosevia-sage" },
                       { label: "Epidermal Texture (Smoothness)", score: 81, color: "bg-rosevia-rose" },
@@ -234,12 +271,12 @@ export default function SkinAnalysis() {
                       { label: "Deep Cellular Hydration", score: 85, color: "bg-rosevia-clay" },
                       { label: "Elasticity (Fine Lines)", score: 92, color: "bg-rosevia-terracotta" }
                     ].map((item, idx) => (
-                      <div key={idx} className="space-y-1">
-                        <div className="flex justify-between text-xs font-medium text-rosevia-clay">
+                      <div key={idx} className="space-y-1.5">
+                        <div className="flex justify-between text-xs font-bold text-rosevia-clay">
                           <span>{item.label}</span>
-                          <span className="font-bold">{item.score}%</span>
+                          <span>{item.score}%</span>
                         </div>
-                        <div className="w-full h-2 bg-rosevia-cream border border-rosevia-rose/25 rounded-full overflow-hidden">
+                        <div className="w-full h-2 bg-rosevia-cream border border-rosevia-rose/25 rounded-full overflow-hidden shadow-xs">
                           <div className={`h-full ${item.color} rounded-full`} style={{ width: `${item.score}%` }} />
                         </div>
                       </div>
@@ -248,12 +285,12 @@ export default function SkinAnalysis() {
                 </div>
 
                 {/* AI Explanatory Diagnosis */}
-                <div className="glass-card p-5 space-y-3">
+                <div className="glass-card p-6 space-y-3.5 shadow-sm">
                   <div className="flex items-center space-x-2">
                     <Sparkles size={16} className="text-rosevia-gold" />
-                    <h4 className="text-xs font-semibold tracking-widest uppercase text-rosevia-clay">Derm AI Diagnostics</h4>
+                    <h4 className="text-xs font-bold tracking-widest uppercase text-rosevia-clay">Derm AI Diagnostics</h4>
                   </div>
-                  <p className="text-xs text-rosevia-clay/90 leading-relaxed space-y-2">
+                  <p className="text-xs text-rosevia-clay/90 leading-relaxed font-medium">
                     "Excellent progress, redness is significantly down! The Centella Asiatica serum added to your calm cycle is actively cooling vascular tissues. We notice deep cellular hydration has climbed to 85%, responding well to your water intake logs. 
                     <br /><br />
                     **Recommended Adjustment**: Since pores remain slightly congested at 78%, increase your **Salicylic Acid (BHA)** toner application strictly on Tuesdays and Fridays in your PM cycle. Layer under your moisturizer on completely dry skin to refine lipids without distressing the barrier."
@@ -261,22 +298,22 @@ export default function SkinAnalysis() {
                 </div>
 
                 {/* Before / After Progression Map */}
-                <div className="glass-card p-5 space-y-3">
-                  <h4 className="text-xs font-semibold tracking-widest uppercase text-rosevia-clay">Historical Progress Chart</h4>
-                  <div className="flex justify-between items-center text-center bg-white/40 border border-rosevia-rose/20 rounded-2xl p-4">
+                <div className="glass-card p-6 space-y-3.5 shadow-sm">
+                  <h4 className="text-xs font-bold tracking-widest uppercase text-rosevia-clay">Historical Progress Chart</h4>
+                  <div className="flex justify-between items-center text-center bg-white/40 border border-rosevia-rose/20 rounded-2xl p-5 shadow-xs">
                     <div>
-                      <p className="text-[10px] tracking-wider uppercase text-rosevia-clay/65">Week 1 (May 5)</p>
-                      <p className="text-sm font-bold text-rosevia-clay/70 mt-0.5">79 Index</p>
+                      <p className="text-[9px] tracking-wider uppercase font-bold text-rosevia-clay/65">Week 1 (May 5)</p>
+                      <p className="text-xs font-bold text-rosevia-clay/70 mt-1">79 Index</p>
                     </div>
                     <TrendingUp size={16} className="text-rosevia-rose/50" />
                     <div>
-                      <p className="text-[10px] tracking-wider uppercase text-rosevia-clay/65">Week 2 (May 12)</p>
-                      <p className="text-sm font-bold text-rosevia-clay/70 mt-0.5">80 Index</p>
+                      <p className="text-[9px] tracking-wider uppercase font-bold text-rosevia-clay/65">Week 2 (May 12)</p>
+                      <p className="text-xs font-bold text-rosevia-clay/70 mt-1">80 Index</p>
                     </div>
-                    <TrendingUp size={16} className="text-rosevia-gold" />
+                    <TrendingUp size={16} className="text-rosevia-gold animate-bounce" />
                     <div>
-                      <p className="text-[10px] tracking-wider uppercase text-rosevia-clay/65">Current (May 26)</p>
-                      <p className="text-sm font-bold text-rosevia-clay mt-0.5">84 Index</p>
+                      <p className="text-[9px] tracking-wider uppercase font-bold text-rosevia-clay">Current (May 26)</p>
+                      <p className="text-sm font-bold text-rosevia-clay mt-1">84 Index</p>
                     </div>
                   </div>
                 </div>
@@ -284,12 +321,12 @@ export default function SkinAnalysis() {
               </div>
             ) : (
               /* Instructions Placeholder when not analyzed */
-              <div className="glass-card p-8 text-center flex flex-col items-center justify-center space-y-4 aspect-[4/3] md:aspect-[4/2.8]">
+              <div className="glass-card p-8 text-center flex flex-col items-center justify-center space-y-4 aspect-[4/3] md:aspect-[4/2.5] shadow-sm bg-white/50">
                 <div className="w-12 h-12 rounded-full bg-rosevia-rose/20 flex items-center justify-center">
                   <Camera size={22} className="text-rosevia-clay" />
                 </div>
-                <h3 className="text-base font-serif text-rosevia-clay">Provide a photo to activate diagnostics</h3>
-                <p className="text-xs text-rosevia-clay/80 max-w-sm leading-relaxed">
+                <h3 className="text-base font-serif font-bold text-rosevia-clay uppercase tracking-wide">Provide a photo to activate diagnostics</h3>
+                <p className="text-xs text-rosevia-clay/80 max-w-sm leading-relaxed font-medium">
                   Upload a clear facial selfie or select one of our pre-loaded biological skincare models. The AI will draw scan layers and compute deep index scores.
                 </p>
               </div>
@@ -300,8 +337,8 @@ export default function SkinAnalysis() {
 
       </div>
 
-      {/* FLOATING BOTTOM NAVIGATION */}
-      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-xl glass-panel py-3 px-4 rounded-2xl flex justify-between items-center shadow-lg border border-rosevia-rose/40 z-50">
+      {/* FLOATING BOTTOM NAVIGATION (SPACED FOR 6 ITEMS) */}
+      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md glass-panel py-3.5 px-6 rounded-2xl flex justify-between items-center shadow-lg border border-rosevia-rose/40 z-50">
         <button 
           onClick={() => navigateTo("/")}
           className="flex flex-col items-center text-rosevia-clay/70 hover:text-rosevia-clay shrink-0 cursor-pointer"
@@ -339,17 +376,10 @@ export default function SkinAnalysis() {
         </button>
         <button 
           onClick={() => navigateTo("/journal")}
-          className="flex flex-col items-center text-rosevia-clay/70 hover:text-rosevia-clay shrink-0 cursor-pointer"
+          className="flex flex-col items-center text-rosevia-clay/70 hover:text-rosevia-clay shrink-0 cursor-pointer animate-none"
         >
           <BookOpen size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Diary</span>
-        </button>
-        <button 
-          onClick={() => navigateTo("/social")}
-          className="flex flex-col items-center text-rosevia-clay/70 hover:text-rosevia-clay shrink-0 cursor-pointer"
-        >
-          <Users size={18} />
-          <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Friends</span>
         </button>
       </nav>
 
