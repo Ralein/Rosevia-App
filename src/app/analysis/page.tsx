@@ -13,8 +13,7 @@ import {
   TrendingUp, 
   ShieldCheck, 
   UploadCloud,
-  Loader2,
-  CheckCircle2
+  Loader2
 } from "lucide-react";
 
 export default function SkinAnalysis() {
@@ -23,11 +22,6 @@ export default function SkinAnalysis() {
   const [scanning, setScanning] = useState(false);
   const [scanStep, setScanStep] = useState(0);
   const [showReport, setShowReport] = useState(false);
-  
-  const sampleSelfies = [
-    { id: "skin1", label: "Model Face A (Slight redness)", url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=300&auto=format&fit=crop" },
-    { id: "skin2", label: "Model Face B (Balanced glow)", url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=300&auto=format&fit=crop" }
-  ];
 
   const navigateTo = (path: string) => {
     window.location.href = path;
@@ -55,11 +49,6 @@ export default function SkinAnalysis() {
     }
   };
 
-  const selectSampleSelfie = (url: string) => {
-    setImage(url);
-    setShowReport(false);
-  };
-
   const startVisualScan = () => {
     setScanning(true);
     setScanStep(1);
@@ -83,10 +72,10 @@ export default function SkinAnalysis() {
           <div>
             <h1 className="text-xs tracking-widest font-bold text-rosevia-clay uppercase">AI Biological Diagnostics</h1>
             <p className="text-2xl md:text-3xl font-serif text-rosevia-charcoal tracking-tight font-light mt-1">
-              Weekly Selfie <span className="italic text-rosevia-clay font-normal">Skin Scan</span>
+              Weekly Selfie <span className="italic text-rosevia-rose font-normal">Skin Scan</span>
             </p>
           </div>
-          <div className="px-3 py-1 bg-rosevia-gold/15 border border-rosevia-gold/30 rounded-full text-[10px] tracking-wider uppercase font-bold text-rosevia-clay">
+          <div className="px-3 py-1 bg-rosevia-rose/15 border border-rosevia-rose/30 rounded-full text-[10px] tracking-wider uppercase font-bold text-rosevia-rose">
             Routine Ritual
           </div>
         </header>
@@ -104,7 +93,7 @@ export default function SkinAnalysis() {
                   <img src={image} alt="Selfie upload" className="w-full h-full object-cover" />
                   
                   {scanning && (
-                    <div className="absolute left-0 w-full h-[3px] bg-rosevia-gold/90 shadow-[0_0_12px_#C5A880] animate-scan z-20" />
+                    <div className="absolute left-0 w-full h-[3px] bg-rosevia-gold/90 shadow-[0_0_12px_#C2B095] animate-scan z-20" />
                   )}
 
                   {/* Pulsing zone indicators */}
@@ -169,27 +158,6 @@ export default function SkinAnalysis() {
               </div>
             )}
 
-            {/* Quick Sample Selector */}
-            {!scanning && !showReport && (
-              <div className="w-full space-y-2">
-                <p className="text-[9px] text-center tracking-widest font-bold uppercase text-rosevia-clay/70">Or test with demo models</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {sampleSelfies.map((s) => (
-                    <button
-                      key={s.id}
-                      onClick={() => selectSampleSelfie(s.url)}
-                      className={`text-[10px] p-2 border rounded-xl bg-white/40 cursor-pointer hover:border-rosevia-gold transition-all duration-300 truncate text-left flex items-center space-x-2 shadow-xs ${
-                        image === s.url ? "border-rosevia-gold bg-rosevia-rose/25" : "border-rosevia-rose/20"
-                      }`}
-                    >
-                      <img src={s.url} className="w-6 h-6 rounded-full object-cover shrink-0 border border-rosevia-rose/40" />
-                      <span className="truncate font-semibold">{s.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* Controls */}
             <div className="w-full flex flex-col space-y-2 pt-2">
               <label className="w-full py-3.5 rounded-xl border border-dashed border-rosevia-rose bg-white hover:bg-rosevia-rose/10 transition-all text-xs tracking-widest font-bold uppercase text-rosevia-clay text-center cursor-pointer block shadow-xs">
@@ -237,8 +205,8 @@ export default function SkinAnalysis() {
                       />
                       <defs>
                         <linearGradient id="skinIndexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stopColor="#C5A880" />
-                          <stop offset="100%" stopColor="#EAD2C6" />
+                          <stop offset="0%" stopColor="#C2B095" />
+                          <stop offset="100%" stopColor="#607C70" />
                         </linearGradient>
                       </defs>
                     </svg>
@@ -249,7 +217,7 @@ export default function SkinAnalysis() {
                   </div>
 
                   <div className="space-y-1.5 flex-1">
-                    <div className="inline-flex items-center space-x-1.5 bg-rosevia-green text-rosevia-sage px-2.5 py-0.5 rounded text-[9px] font-bold uppercase border border-rosevia-sage/20">
+                    <div className="inline-flex items-center space-x-1.5 bg-rosevia-green text-rosevia-rose px-2.5 py-0.5 rounded text-[9px] font-bold uppercase border border-rosevia-rose/20">
                       <ShieldCheck size={10} /> <span>Barrier Stable</span>
                     </div>
                     <h3 className="text-base font-serif font-bold text-rosevia-clay">Clinical Diagnosis</h3>
@@ -265,7 +233,7 @@ export default function SkinAnalysis() {
                   
                   <div className="space-y-4">
                     {[
-                      { label: "Barrier Calmness (Redness)", score: 89, color: "bg-rosevia-sage" },
+                      { label: "Barrier Calmness (Redness)", score: 89, color: "bg-rosevia-rose" },
                       { label: "Epidermal Texture (Smoothness)", score: 81, color: "bg-rosevia-rose" },
                       { label: "Pore Congestion (Sebum Balance)", score: 78, color: "bg-rosevia-gold" },
                       { label: "Deep Cellular Hydration", score: 85, color: "bg-rosevia-clay" },
@@ -327,7 +295,7 @@ export default function SkinAnalysis() {
                 </div>
                 <h3 className="text-base font-serif font-bold text-rosevia-clay uppercase tracking-wide">Provide a photo to activate diagnostics</h3>
                 <p className="text-xs text-rosevia-clay/80 max-w-sm leading-relaxed font-medium">
-                  Upload a clear facial selfie or select one of our pre-loaded biological skincare models. The AI will draw scan layers and compute deep index scores.
+                  Upload a clear facial selfie. The AI will draw scan layers and compute deep index scores.
                 </p>
               </div>
             )}

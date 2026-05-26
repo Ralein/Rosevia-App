@@ -1,15 +1,16 @@
 @import "tailwindcss";
 
 @theme {
-  --color-rosevia-cream: #FAF7F2;
-  --color-rosevia-sand: #F0E6D8;
-  --color-rosevia-rose: #EAD2C6;
-  --color-rosevia-gold: #C5A880;
-  --color-rosevia-clay: #8C6D58;
-  --color-rosevia-charcoal: #262423;
-  --color-rosevia-green: #E8F0E6;
-  --color-rosevia-sage: #6C8268;
-  --color-rosevia-terracotta: #B97A6B;
+  /* Sleek Minimal Slate & Sage / Botanical Pharmacy Theme */
+  --color-rosevia-cream: #F7F7F5;
+  --color-rosevia-sand: #EAECE6;
+  --color-rosevia-rose: #607C70;
+  --color-rosevia-gold: #C2B095;
+  --color-rosevia-clay: #47544C;
+  --color-rosevia-charcoal: #1E2220;
+  --color-rosevia-green: #E8EDE8;
+  --color-rosevia-sage: #30443B;
+  --color-rosevia-terracotta: #B07464;
   
   --animate-scan: scan 3s ease-in-out infinite;
   --animate-pulse-ring: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -28,19 +29,19 @@
   @keyframes pulse-ring {
     0% {
       transform: scale(0.95);
-      box-shadow: 0 0 0 0 rgba(234, 210, 198, 0.7);
+      box-shadow: 0 0 0 0 rgba(96, 124, 112, 0.7);
     }
     70% {
       transform: scale(1.1);
-      box-shadow: 0 0 0 8px rgba(234, 210, 198, 0);
+      box-shadow: 0 0 0 8px rgba(96, 124, 112, 0);
     }
     100% {
       transform: scale(0.95);
-      box-shadow: 0 0 0 0 rgba(234, 210, 198, 0);
+      box-shadow: 0 0 0 0 rgba(96, 124, 112, 0);
     }
   }
   @keyframes shimmer {
-    0% {
+    0 {
       background-position: -200% 0;
     }
     100% {
@@ -50,8 +51,8 @@
 }
 
 :root {
-  --background: #FAF7F2;
-  --foreground: #262423;
+  --background: #F7F7F5;
+  --foreground: #1E2220;
   color-scheme: light;
 }
 
@@ -69,41 +70,40 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #FAF7F2;
+  background: #F7F7F5;
 }
 ::-webkit-scrollbar-thumb {
-  background: #EAD2C6;
+  background: #607C70;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #C5A880;
+  background: #30443B;
 }
 
 /* Glassmorphism utility */
 .glass-panel {
-  background: rgba(250, 247, 242, 0.75);
+  background: rgba(247, 247, 245, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(234, 210, 198, 0.4);
+  border: 1px solid rgba(96, 124, 112, 0.25);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(234, 210, 198, 0.35);
+  border: 1px solid rgba(96, 124, 112, 0.2);
   border-radius: 16px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card:hover {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: rgba(197, 168, 128, 0.4);
-  box-shadow: 0 10px 30px -10px rgba(140, 109, 88, 0.08);
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(96, 124, 112, 0.45);
+  box-shadow: 0 10px 30px -10px rgba(48, 68, 59, 0.08);
   transform: translateY(-2px);
 }
 
-/* Soft text fade for indicating scroll Port availability */
 .fade-bottom {
   mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
   -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);

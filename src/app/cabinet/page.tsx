@@ -37,35 +37,7 @@ export default function SmartCabinet() {
     window.location.href = path;
   };
 
-  const defaultCabinet: Product[] = [
-    {
-      id: "prod-1",
-      name: "La Roche-Posay Toleriane Double Repair",
-      category: "Moisturizer",
-      pao: "12M",
-      expiryDate: "2026-11-15",
-      fluidLevel: 80,
-      ingredients: ["Water", "Glycerin", "Ceramide NP", "Niacinamide", "Tocopherol"]
-    },
-    {
-      id: "prod-2",
-      name: "Paula's Choice 2% BHA Liquid Exfoliant",
-      category: "Toner",
-      pao: "12M",
-      expiryDate: "2026-07-10",
-      fluidLevel: 15, 
-      ingredients: ["Water", "Salicylic Acid", "Methylpropanediol", "Butylene Glycol", "Green Tea Leaf Extract"]
-    },
-    {
-      id: "prod-3",
-      name: "SkinCeuticals C E Ferulic Serum",
-      category: "Serum",
-      pao: "6M",
-      expiryDate: "2026-06-15", 
-      fluidLevel: 45,
-      ingredients: ["Water", "Ethoxydiglycol", "L-Ascorbic Acid", "Glycerin", "Ferulic Acid", "Vitamin E"]
-    }
-  ];
+  const defaultCabinet: Product[] = [];
 
   useEffect(() => {
     const savedCabinet = localStorage.getItem("rosevia_cabinet");
