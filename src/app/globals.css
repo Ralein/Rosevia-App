@@ -15,6 +15,7 @@
   --animate-scan: scan 3s ease-in-out infinite;
   --animate-pulse-ring: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-shimmer: shimmer 2s linear infinite;
+  --animate-fade-in: fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 
   @keyframes scan {
     0%, 100% {
@@ -46,6 +47,16 @@
     }
     100% {
       background-position: 200% 0;
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 }
@@ -101,10 +112,37 @@ body {
   background: rgba(17, 28, 24, 0.85);
   border-color: rgba(212, 175, 55, 0.4);
   box-shadow: 0 10px 30px -10px rgba(6, 13, 11, 0.95);
-  transform: translateY(-2px);
 }
 
 .fade-bottom {
   mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
   -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
 }
+
+/* Premium 3D depth and hardware acceleration layers */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+/* Custom fade-in for dynamic Three canvas */
+.canvas-fade-in {
+  animation: canvas-fade 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes canvas-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.75;
+  }
+}
+
