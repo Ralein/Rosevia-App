@@ -12,6 +12,13 @@
   --color-rosevia-sage: #4EAB81;        /* Glowing emerald green for completed states */
   --color-rosevia-terracotta: #E58B75;  /* Warm copper for active acids */
   
+  /* Rose Quartz Luxury Theme */
+  --color-rosevia-plum: #12060A;        /* Deep velvet plum background */
+  --color-rosevia-rose-dark: #251117;   /* Dark rose quartz card background */
+  --color-rosevia-rose-light: #E07A9A;  /* Luminous rose accent */
+  --color-rosevia-rosegold: #E8C1C8;    /* Premium liquid rose gold highlights */
+  --color-rosevia-plum-glow: #4A1525;   /* Rose/plum glow state */
+  
   --animate-scan: scan 3s ease-in-out infinite;
   --animate-pulse-ring: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-shimmer: shimmer 2s linear infinite;

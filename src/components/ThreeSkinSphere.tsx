@@ -20,6 +20,19 @@ export default function ThreeSkinSphere() {
     // 1. Scene setup
     const scene = new THREE.Scene();
 
+    // Check active theme
+    const savedTheme = typeof window !== "undefined" ? localStorage.getItem("rosevia_theme") : null;
+    const isPink = savedTheme === "Rose Quartz Luxury";
+
+    // Dynamic colors based on theme
+    const ambientColorValue = isPink ? 0x251117 : 0x111c18;
+    const keyLightColorValue = isPink ? 0xe8c1c8 : 0xd4af37;
+    const accentLightColorValue = isPink ? 0xe07a9a : 0x688a7d;
+    const sphereColorValue = isPink ? 0x251117 : 0x111c18;
+    const sheenColorValue = isPink ? 0xe8c1c8 : 0xd4af37;
+    const particleColor1Value = isPink ? 0xe8c1c8 : 0xd4af37;
+    const particleColor2Value = isPink ? 0xe07a9a : 0x688a7d;
+
     // 2. Camera setup
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
     // Position camera differently depending on screen width
@@ -37,21 +50,21 @@ export default function ThreeSkinSphere() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
     // 4. Lights
-    const ambientLight = new THREE.AmbientLight(0x111c18, 1.2); // Sage-emerald ambient
+    const ambientLight = new THREE.AmbientLight(ambientColorValue, 1.2); // Theme-based ambient
     scene.add(ambientLight);
 
-    // Warm Gold Key Light
-    const dirLight1 = new THREE.DirectionalLight(0xd4af37, 2.5);
+    // Warm Gold/Rose Gold Key Light
+    const dirLight1 = new THREE.DirectionalLight(keyLightColorValue, 2.5);
     dirLight1.position.set(5, 5, 4);
     scene.add(dirLight1);
 
-    // Soft Sage Accent Light
-    const dirLight2 = new THREE.DirectionalLight(0x688a7d, 1.5);
+    // Soft Sage/Rose Quartz Accent Light
+    const dirLight2 = new THREE.DirectionalLight(accentLightColorValue, 1.5);
     dirLight2.position.set(-5, -3, 2);
     scene.add(dirLight2);
 
     // Interactive Point Light (Glows and tracks mouse)
-    const interactiveLight = new THREE.PointLight(0xd4af37, 0, 15);
+    const interactiveLight = new THREE.PointLight(keyLightColorValue, 0, 15);
     interactiveLight.position.set(0, 0, 2);
     scene.add(interactiveLight);
 
@@ -64,7 +77,7 @@ export default function ThreeSkinSphere() {
 
     // Luxury semi-translucent skin cell texture simulation using MeshPhysicalMaterial
     const sphereMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0x111c18,          // Dark Obsidian Jade base
+      color: sphereColorValue,          // Theme-based obsidian base
       roughness: 0.18,
       metalness: 0.45,
       clearcoat: 1.0,
@@ -74,7 +87,7 @@ export default function ThreeSkinSphere() {
       ior: 1.35,                // Index of refraction
       flatShading: false,
       sheen: 1.0,
-      sheenColor: new THREE.Color(0xd4af37), // Gold velvet highlight
+      sheenColor: new THREE.Color(sheenColorValue), // Theme velvet highlight
     });
 
     const bioSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
@@ -87,9 +100,9 @@ export default function ThreeSkinSphere() {
     const particleSizes = new Float32Array(particleCount);
     const particleColors = new Float32Array(particleCount * 3);
 
-    // Color palettes for particles (Gold and Sage Green)
-    const goldColor = new THREE.Color(0xd4af37);
-    const sageColor = new THREE.Color(0x688a7d);
+    // Color palettes for particles (Gold/Rose Gold and Sage Green/Rose Quartz)
+    const color1 = new THREE.Color(particleColor1Value);
+    const color2 = new THREE.Color(particleColor2Value);
 
     for (let i = 0; i < particleCount; i++) {
       // Scatter particles in a shell surrounding the central sphere
@@ -106,9 +119,9 @@ export default function ThreeSkinSphere() {
 
       particleSizes[i] = 0.03 + Math.random() * 0.08;
 
-      // Mix colors randomly between gold and sage green
+      // Mix colors randomly between theme colors
       const mixRatio = Math.random();
-      const mixedColor = new THREE.Color().lerpColors(goldColor, sageColor, mixRatio);
+      const mixedColor = new THREE.Color().lerpColors(color1, color2, mixRatio);
       particleColors[i * 3] = mixedColor.r;
       particleColors[i * 3 + 1] = mixedColor.g;
       particleColors[i * 3 + 2] = mixedColor.b;

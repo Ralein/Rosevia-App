@@ -155,6 +155,15 @@ export default function Home() {
   // Dynamic Theme Styling Classes
   const getThemeClasses = () => {
     switch (theme) {
+      case "Rose Quartz Luxury":
+        return {
+          bg: "bg-rosevia-plum text-rosevia-charcoal",
+          card: "bg-rosevia-rose-dark/85 border border-rosevia-rose-light/40 shadow-[0_4px_30px_rgba(232,193,200,0.12)]",
+          accent: "text-rosevia-rose-light",
+          gold: "text-rosevia-rosegold",
+          button: "bg-rosevia-rose-light text-rosevia-cream hover:bg-rosevia-rosegold",
+          glow: "border-rosevia-rosegold/75 shadow-[0_0_20px_rgba(232,193,200,0.2)]"
+        };
       case "Polished Obsidian":
         return {
           bg: "bg-black text-[#E6E8E6]",
