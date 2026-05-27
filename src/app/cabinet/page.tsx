@@ -33,6 +33,7 @@ export default function SmartCabinet() {
   const [newProductName, setNewProductName] = useState("");
   const [scanning, setScanning] = useState(false);
   const [scheduledStatus, setScheduledStatus] = useState<string | null>(null);
+  const [theme, setTheme] = useState("Midnight Jade");
   
   const navigateTo = (path: string) => {
     window.location.href = path;
@@ -48,7 +49,60 @@ export default function SmartCabinet() {
       setCabinet(defaultCabinet);
       localStorage.setItem("rosevia_cabinet", JSON.stringify(defaultCabinet));
     }
+
+    const savedTheme = localStorage.getItem("rosevia_theme");
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
   }, []);
+
+  const getThemeClasses = () => {
+    switch (theme) {
+      case "Rose Quartz Luxury":
+        return {
+          bg: "bg-rosevia-plum text-rosevia-charcoal",
+          card: "bg-rosevia-rose-dark/85 border border-rosevia-rose-light/40 shadow-[0_4px_30px_rgba(232,193,200,0.12)]",
+          accent: "text-rosevia-rose-light",
+          gold: "text-rosevia-rosegold",
+          button: "bg-rosevia-rose-light text-rosevia-cream hover:bg-rosevia-rosegold",
+          glow: "border-rosevia-rosegold/75 shadow-[0_0_20px_rgba(232,193,200,0.2)]",
+          shelf: "from-rosevia-rose-dark/95 to-rosevia-plum border border-rosevia-rose-light/40"
+        };
+      case "Polished Obsidian":
+        return {
+          bg: "bg-black text-[#E6E8E6]",
+          card: "bg-neutral-950/80 border border-neutral-800 shadow-[0_4px_25px_rgba(0,0,0,0.85)]",
+          accent: "text-neutral-400",
+          gold: "text-rosevia-gold",
+          button: "bg-neutral-900 border border-neutral-700 hover:border-rosevia-gold text-rosevia-charcoal",
+          glow: "border-rosevia-gold/50 shadow-[0_0_15px_rgba(212,175,55,0.06)]",
+          shelf: "from-neutral-950 to-neutral-900 border border-neutral-800"
+        };
+      case "Liquid Gold Premium":
+        return {
+          bg: "bg-[#060D0B] text-rosevia-charcoal",
+          card: "bg-[#111C18]/85 border border-rosevia-gold/50 shadow-[0_4px_30px_rgba(212,175,55,0.12)]",
+          accent: "text-rosevia-rose",
+          gold: "text-rosevia-gold",
+          button: "bg-rosevia-gold text-rosevia-cream hover:bg-rosevia-rose",
+          glow: "border-rosevia-gold/75 shadow-[0_0_20px_rgba(212,175,55,0.2)]",
+          shelf: "from-[#1a1106] to-[#0d0701] border border-rosevia-gold/40"
+        };
+      case "Midnight Jade":
+      default:
+        return {
+          bg: "bg-rosevia-cream text-rosevia-charcoal",
+          card: "glass-card bg-rosevia-sand/70 border border-rosevia-rose/25",
+          accent: "text-rosevia-clay",
+          gold: "text-rosevia-gold",
+          button: "bg-rosevia-clay text-rosevia-cream hover:bg-rosevia-gold",
+          glow: "border-rosevia-rose/30 shadow-xs",
+          shelf: "from-[#111C18] to-[#070D0A] border border-[#162B22]"
+        };
+    }
+  };
+
+  const currentTheme = getThemeClasses();
 
   const saveCabinetToStorage = (updatedCabinet: Product[]) => {
     setCabinet(updatedCabinet);
@@ -111,7 +165,6 @@ export default function SmartCabinet() {
     saveCabinetToStorage(updated);
   };
 
-  // AI Skincare Auto-Scheduler based on cosmetic ingredient chemistry
   const handleScheduleIntoRoutine = (product: Product) => {
     const savedRoutine = localStorage.getItem("rosevia_routine");
     if (!savedRoutine) return;
@@ -122,9 +175,7 @@ export default function SmartCabinet() {
     const cat = product.category.toLowerCase();
     const ingText = product.ingredients.join(" ").toLowerCase();
 
-    // Map scheduling strategically based on active chemical biology
     if (cat.includes("cleans")) {
-      // Cleansers are the first step in both AM and PM
       for (const day of Object.keys(updatedWeeklyCycle)) {
         const cleanAm = updatedWeeklyCycle[day].am.filter((p: string) => !p.toLowerCase().includes("cleans"));
         updatedWeeklyCycle[day].am = [name, ...cleanAm];
@@ -133,40 +184,47 @@ export default function SmartCabinet() {
         updatedWeeklyCycle[day].pm = [name, ...cleanPm];
       }
     } else if (cat.includes("spf") || cat.includes("sunscreen")) {
-      // SPF broad-spectrum sunscreen is AM strictly, as the final lock step
       for (const day of Object.keys(updatedWeeklyCycle)) {
         const cleanAm = updatedWeeklyCycle[day].am.filter((p: string) => !p.toLowerCase().includes("spf") && !p.toLowerCase().includes("sunscreen"));
         updatedWeeklyCycle[day].am = [...cleanAm, name];
       }
     } else if (ingText.includes("retinol") || ingText.includes("retinoid") || ingText.includes("tretinoin")) {
-      // Retinols strictly PM on alternate safe nights (Tuesday, Thursday, Saturday, Sunday)
       const pmRetinolDays = ["tuesday", "thursday", "saturday", "sunday"];
       for (const day of pmRetinolDays) {
         const cleanPm = updatedWeeklyCycle[day].pm.filter((p: string) => !p.toLowerCase().includes("retin") && !p.toLowerCase().includes("tretin"));
         const cleanserIdx = cleanPm.findIndex((p: string) => p.toLowerCase().includes("cleans"));
-        cleanPm.splice(cleanserIdx + 1, 0, name);
+        if (cleanserIdx !== -1) {
+          cleanPm.splice(cleanserIdx + 1, 0, name);
+        } else {
+          cleanPm.unshift(name);
+        }
         updatedWeeklyCycle[day].pm = cleanPm;
       }
     } else if (ingText.includes("ascorbic") || ingText.includes("vitamin c")) {
-      // Vitamin C strictly AM for day cellular defense (Monday, Wednesday, Friday, Sunday)
       const amVitCDays = ["monday", "wednesday", "friday", "sunday"];
       for (const day of amVitCDays) {
         const cleanAm = updatedWeeklyCycle[day].am.filter((p: string) => !p.toLowerCase().includes("vit") && !p.toLowerCase().includes("ascorbic"));
         const cleanserIdx = cleanAm.findIndex((p: string) => p.toLowerCase().includes("cleans"));
-        cleanAm.splice(cleanserIdx + 1, 0, name);
+        if (cleanserIdx !== -1) {
+          cleanAm.splice(cleanserIdx + 1, 0, name);
+        } else {
+          cleanAm.unshift(name);
+        }
         updatedWeeklyCycle[day].am = cleanAm;
       }
     } else if (ingText.includes("salicylic") || ingText.includes("bha") || ingText.includes("glycolic") || ingText.includes("lactic") || ingText.includes("aha")) {
-      // Exfoliating acids PM strictly on safe non-retinol nights (Monday, Wednesday, Friday)
       const pmAcidDays = ["monday", "wednesday", "friday"];
       for (const day of pmAcidDays) {
         const cleanPm = updatedWeeklyCycle[day].pm.filter((p: string) => !p.toLowerCase().includes("bha") && !p.toLowerCase().includes("aha") && !p.toLowerCase().includes("salicyl") && !p.toLowerCase().includes("glycol"));
         const cleanserIdx = cleanPm.findIndex((p: string) => p.toLowerCase().includes("cleans"));
-        cleanPm.splice(cleanserIdx + 1, 0, name);
+        if (cleanserIdx !== -1) {
+          cleanPm.splice(cleanserIdx + 1, 0, name);
+        } else {
+          cleanPm.unshift(name);
+        }
         updatedWeeklyCycle[day].pm = cleanPm;
       }
     } else if (cat.includes("moisturizer") || cat.includes("cream")) {
-      // Moisturizers go to AM (before SPF) and PM (final seal step)
       for (const day of Object.keys(updatedWeeklyCycle)) {
         const cleanAm = updatedWeeklyCycle[day].am.filter((p: string) => !p.toLowerCase().includes("moist") && !p.toLowerCase().includes("cream"));
         const spfIdx = cleanAm.findIndex((p: string) => p.toLowerCase().includes("spf") || p.toLowerCase().includes("sunscreen"));
@@ -182,7 +240,6 @@ export default function SmartCabinet() {
         updatedWeeklyCycle[day].pm = cleanPm;
       }
     } else {
-      // Fallback: general serums/toners go to AM and PM as hydrating middle steps
       for (const day of Object.keys(updatedWeeklyCycle)) {
         const cleanAm = [...updatedWeeklyCycle[day].am];
         cleanAm.push(name);
@@ -225,12 +282,10 @@ export default function SmartCabinet() {
 
   const cabinetWarnings = checkWarnings();
 
-  // Helper component to render beautiful category-specific SVG skincare vials
   const RenderSkincareVial = ({ category, level }: { category: string; level: number }) => {
-    const fillHeight = 36 - (36 * level) / 100; // SVG bound heights
+    const fillHeight = 36 - (36 * level) / 100;
     const fillPercent = level;
 
-    // Determine color of fluid based on category
     let fluidColor = "#FAF7F2"; 
     if (category.toLowerCase().includes("toner")) fluidColor = "#D4AF37"; 
     if (category.toLowerCase().includes("serum")) fluidColor = "#688A7D"; 
@@ -238,37 +293,27 @@ export default function SmartCabinet() {
     if (category.toLowerCase().includes("moist") || category.toLowerCase().includes("cream")) fluidColor = "#C5A880";
 
     if (category.toLowerCase().includes("serum")) {
-      // 1. TALL AMBER DROPPER VIAL (SERUM)
       return (
         <svg className="w-12 h-20 text-rosevia-clay shrink-0 drop-shadow-sm" viewBox="0 0 40 70" fill="none">
-          {/* Dropper Cap */}
           <rect x="17" y="2" width="6" height="8" rx="1" fill="#060D0B" />
           <rect x="14" y="10" width="12" height="6" fill="#D4AF37" />
-          {/* Bottle Neck */}
           <rect x="16" y="16" width="8" height="6" fill="#D4AF37" opacity="0.3" />
-          {/* Bottle Body */}
           <path d="M8,22 C8,22 8,22 8,22 C8,22 32,22 32,22 C32,22 32,22 32,22 L32,60 C32,63 29,66 26,66 L14,66 C11,66 8,63 8,60 Z" fill="rgba(212, 175, 55, 0.08)" stroke="#D4AF37" strokeWidth="1.5" />
-          {/* Internal Fluid Level (Clipped) */}
           <g clipPath="url(#bodyClipSerum)">
             <rect x="9" y={23 + fillHeight} width="22" height="42" fill={fluidColor} opacity="0.65" />
           </g>
           <clipPath id="bodyClipSerum">
             <path d="M9,23 L31,23 L31,59 C31,61 29,64 26,64 L14,64 C11,64 9,61 9,59 Z" />
           </clipPath>
-          {/* Dropper Pipette Line inside */}
           <line x1="20" y1="18" x2="20" y2="55" stroke="#D4AF37" strokeWidth="1.2" strokeDasharray="2 2" />
         </svg>
       );
     } else if (category.toLowerCase().includes("moisturizer") || category.toLowerCase().includes("spf") || category.toLowerCase().includes("cream")) {
-      // 2. LUXURY WIDE JAR (CREAM/MOISTURIZER)
       return (
         <svg className="w-16 h-16 text-rosevia-clay shrink-0 drop-shadow-sm" viewBox="0 0 50 50" fill="none">
-          {/* Flat Lid */}
           <rect x="8" y="4" width="34" height="6" rx="1.5" fill="#060D0B" />
           <rect x="10" y="10" width="30" height="2" fill="#D4AF37" />
-          {/* Jar Body */}
           <path d="M4,13 C4,13 46,13 46,13 L43,41 C43,44 40,46 37,46 L13,46 C10,46 7,44 7,41 Z" fill="rgba(212, 175, 55, 0.08)" stroke="#D4AF37" strokeWidth="1.5" />
-          {/* Internal Fluid Level (Clipped) */}
           <g clipPath="url(#bodyClipCream)">
             <rect x="5" y={14 + (28 - (28 * fillPercent) / 100)} width="40" height="30" fill={fluidColor} opacity="0.65" />
           </g>
@@ -278,14 +323,10 @@ export default function SmartCabinet() {
         </svg>
       );
     } else {
-      // 3. SLEEK CLINICAL CYLINDER BOTTLE (TONER / CLEANSER)
       return (
         <svg className="w-12 h-20 text-rosevia-clay shrink-0 drop-shadow-sm" viewBox="0 0 34 70" fill="none">
-          {/* Cylinder Cap */}
           <rect x="11" y="2" width="12" height="12" rx="1" fill="#060D0B" />
-          {/* Bottle Body */}
           <rect x="6" y="15" width="22" height="50" rx="3" fill="rgba(212, 175, 55, 0.08)" stroke="#D4AF37" strokeWidth="1.5" />
-          {/* Internal Fluid Level */}
           <g clipPath="url(#bodyClipCylinder)">
             <rect x="7" y={16 + (48 - (48 * fillPercent) / 100)} width="20" height="48" fill={fluidColor} opacity="0.65" />
           </g>
@@ -298,23 +339,22 @@ export default function SmartCabinet() {
   };
 
   return (
-    <div className="min-h-screen bg-rosevia-cream text-rosevia-charcoal pb-28 select-none">
+    <div className={`min-h-screen ${currentTheme.bg} pb-28 select-none transition-colors duration-500`}>
       
       <div className="max-w-4xl mx-auto px-4 pt-6 md:pt-10 flex flex-col space-y-6 animate-fade-in">
         
         {/* Header Title */}
         <header className="flex justify-between items-start">
           <div>
-            <h1 className="text-xs tracking-widest font-bold text-rosevia-clay uppercase">Cosmeceutical Library</h1>
-            <p className="text-2xl md:text-3xl font-serif text-rosevia-charcoal tracking-tight font-light mt-1">
-              Digital Cabinet & <span className="italic text-rosevia-gold font-normal">Shelf Scanner</span>
+            <h1 className={`text-xs tracking-widest font-bold ${currentTheme.accent} uppercase`}>Cosmeceutical Library</h1>
+            <p className="text-2xl md:text-3xl font-serif tracking-tight font-light mt-1">
+              Digital Cabinet & <span className={`italic ${currentTheme.gold} font-normal`}>Shelf Scanner</span>
             </p>
           </div>
           
-          {/* Clinical Profile Circle Initials return to Home */}
           <button 
             onClick={() => navigateTo("/")}
-            className="w-10 h-10 rounded-full bg-gradient-to-tr from-rosevia-gold/30 to-rosevia-rose/30 border border-rosevia-gold/50 flex items-center justify-center font-serif text-xs font-bold text-rosevia-gold hover:shadow-[0_0_12px_rgba(212,175,55,0.3)] transition-all shrink-0 cursor-pointer"
+            className={`w-10 h-10 rounded-full bg-gradient-to-tr from-rosevia-gold/30 to-rosevia-rose/30 border border-rosevia-gold/50 flex items-center justify-center font-serif text-xs font-bold ${currentTheme.gold} hover:shadow-lg transition-all shrink-0 cursor-pointer`}
           >
             RN
           </button>
@@ -350,12 +390,12 @@ export default function SmartCabinet() {
         )}
 
         {/* Shelf Scanner Simulator Input */}
-        <div className="glass-card p-6 space-y-4 shadow-sm">
+        <div className={`${currentTheme.card} p-6 space-y-4 shadow-sm`}>
           <div className="flex items-center space-x-2">
-            <Sparkles size={16} className="text-rosevia-gold animate-pulse" />
-            <h3 className="text-xs font-semibold tracking-widest uppercase text-rosevia-clay">Shelf Scanner Simulator</h3>
+            <Sparkles size={16} className={`${currentTheme.gold} animate-pulse`} />
+            <h3 className={`text-xs font-semibold tracking-widest uppercase ${currentTheme.accent}`}>Shelf Scanner Simulator</h3>
           </div>
-          <p className="text-xs text-rosevia-clay/70 leading-relaxed font-medium">
+          <p className={`text-xs ${currentTheme.accent} opacity-90 leading-relaxed font-medium`}>
             Type any brand product (e.g. <i>"Paula's Choice BHA"</i> or <i>"CeraVe Hydrating Cleanser"</i>) to simulate photo scanner extraction. Our AI extracts branded naming and full active ingredients.
           </p>
 
@@ -371,16 +411,15 @@ export default function SmartCabinet() {
             <button
               onClick={handleScanProduct}
               disabled={scanning || !newProductName.trim()}
-              className="px-6 rounded-xl bg-rosevia-gold text-rosevia-cream text-xs font-bold tracking-wider uppercase hover:bg-rosevia-rose transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center shrink-0 shadow-sm"
+              className={`px-6 rounded-xl text-rosevia-cream text-xs font-bold tracking-wider uppercase transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center shrink-0 shadow-sm ${currentTheme.button}`}
             >
               {scanning ? <Loader2 size={14} className="animate-spin" /> : "Scan Item"}
             </button>
           </div>
         </div>
 
-        {/* Tiered Polished Malachite & Gold Skincare Shelf View */}
-        <div className="space-y-8 bg-gradient-to-b from-[#111C18] to-[#070D0A] border border-[#162B22] rounded-3xl p-6 relative overflow-hidden shadow-md">
-          {/* Glass Gloss/Glare Accent */}
+        {/* Tiered Skincare Shelf View */}
+        <div className={`space-y-8 bg-gradient-to-b ${currentTheme.shelf} rounded-3xl p-6 relative overflow-hidden shadow-md`}>
           <div className="absolute top-0 right-0 w-[50%] h-[150%] bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none transform rotate-12" />
 
           {["Cleanser", "Toner", "Serum", "Moisturizer"].map((cat) => {
@@ -389,25 +428,25 @@ export default function SmartCabinet() {
             return (
               <div key={cat} className="space-y-4 relative">
                 <div className="flex justify-between items-center border-b border-rosevia-rose/25 pb-1">
-                  <h4 className="text-[10px] tracking-widest font-bold uppercase text-rosevia-gold">{cat}s & Barriers</h4>
-                  <span className="text-[9px] font-bold text-rosevia-clay uppercase">{items.length} Bottle{items.length !== 1 && "s"}</span>
+                  <h4 className={`text-[10px] tracking-widest font-bold uppercase ${currentTheme.gold}`}>{cat}s & Barriers</h4>
+                  <span className={`text-[9px] font-bold ${currentTheme.accent} uppercase`}>{items.length} Bottle{items.length !== 1 && "s"}</span>
                 </div>
 
                 {items.length === 0 ? (
-                  <p className="text-[10px] text-rosevia-clay/60 italic py-2 pl-2">No {cat.toLowerCase()}s on this shelf tier.</p>
+                  <p className={`text-[10px] ${currentTheme.accent} opacity-60 italic py-2 pl-2`}>No {cat.toLowerCase()}s on this shelf tier.</p>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pb-2">
                     {items.map((prod) => (
                       <div 
                         key={prod.id} 
-                        className="glass-card bg-rosevia-sand/85 p-4 rounded-xl relative flex flex-col justify-between space-y-3 group border border-rosevia-rose/30 shadow-sm transition-all duration-300 hover:border-rosevia-gold/50"
+                        className={`bg-rosevia-sand/85 p-4 rounded-xl relative flex flex-col justify-between space-y-3 group border border-rosevia-rose/30 shadow-sm transition-all duration-300 hover:border-rosevia-gold/50`}
                       >
                         {/* Expiry Badge */}
                         <div className="absolute top-3 right-3 flex items-center space-x-1 text-[8px] font-bold bg-rosevia-cream border border-rosevia-rose/40 px-1.5 py-0.5 rounded text-rosevia-gold">
                           <Clock size={8} /> <span>{prod.pao} PAO</span>
                         </div>
 
-                        {/* Top layout: Custom SVG Silhouetted skincare bottle + Metadata */}
+                        {/* Top layout */}
                         <div className="flex items-center space-x-3">
                           <RenderSkincareVial category={prod.category} level={prod.fluidLevel} />
                           <div className="flex-1 min-w-0">
@@ -432,14 +471,13 @@ export default function SmartCabinet() {
                           )}
                         </div>
 
-                        {/* Fluid visual progress bar and controls */}
+                        {/* Fluid progress */}
                         <div className="space-y-1.5 border-t border-rosevia-rose/15 pt-2">
                           <div className="flex justify-between items-center text-[9px] font-bold text-rosevia-clay">
                             <span>Remaining Capacity</span>
                             <span className={prod.fluidLevel <= 20 ? "text-rosevia-terracotta" : ""}>{prod.fluidLevel}%</span>
                           </div>
                           
-                          {/* Progress Line */}
                           <div className="w-full h-1.5 bg-rosevia-cream border border-rosevia-rose/20 rounded-full overflow-hidden shadow-inner">
                             <div 
                               className={`h-full rounded-full transition-all duration-300 ${
@@ -466,7 +504,6 @@ export default function SmartCabinet() {
                               </button>
                             </div>
 
-                            {/* Active AI Schedule Button */}
                             <button
                               onClick={() => handleScheduleIntoRoutine(prod)}
                               className="px-2 py-1 rounded bg-rosevia-gold/15 border border-rosevia-gold/30 hover:bg-rosevia-gold hover:text-rosevia-cream text-[8px] font-bold tracking-wider uppercase text-rosevia-gold transition-all duration-300 cursor-pointer flex items-center gap-1 shadow-xs"
@@ -489,8 +526,8 @@ export default function SmartCabinet() {
                   </div>
                 )}
 
-                {/* PHYSICAL LUXURY LIQUID MALACHITE JADE GLASS AND GOLD TRIM SHELF FOOTING */}
-                <div className="relative h-3.5 w-full rounded-t-sm shadow-md border-t border-rosevia-gold/40 bg-gradient-to-b from-rosevia-gold/25 to-rosevia-rose/10">
+                {/* Shelf Footing */}
+                <div className={`relative h-3.5 w-full rounded-t-sm shadow-md border-t ${theme === "Rose Quartz Luxury" ? "border-rosevia-rose-light/50 bg-gradient-to-b from-rosevia-rose-light/30 to-rosevia-rosegold/10" : "border-rosevia-gold/40 bg-gradient-to-b from-rosevia-gold/25 to-rosevia-rose/10"}`}>
                   <div className="absolute bottom-0 w-full h-[3px] bg-rosevia-gold/40 shadow-inner" />
                 </div>
               </div>
@@ -500,7 +537,7 @@ export default function SmartCabinet() {
 
       </div>
 
-      {/* FLOATING BOTTOM PREMIUM NAVIGATION DOCK (BALANCED FOR 6 ITEMS WITH SETTINGS) */}
+      {/* FLOATING BOTTOM PREMIUM NAVIGATION DOCK */}
       <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md glass-panel py-3.5 px-6 rounded-2xl flex justify-between items-center shadow-lg border border-rosevia-rose/40 z-50">
         <button 
           onClick={() => navigateTo("/")}
