@@ -3,7 +3,9 @@ import {
   generateQuizRoutine, 
   checkIngredientConflicts, 
   chatSkincare, 
-  scanShelfProduct 
+  scanShelfProduct,
+  analyzeSkinSelfie,
+  correlateSkinRhythms
 } from "@/lib/groq";
 
 export async function POST(request: Request) {
@@ -50,6 +52,24 @@ export async function POST(request: Request) {
         }
         const product = await scanShelfProduct(productName);
         return NextResponse.json({ product });
+      }
+
+      case "scanSelfie": {
+        const { image, skinType, concerns } = body;
+        if (!image || !skinType || !concerns) {
+          return NextResponse.json({ error: "Missing selfie scan parameters" }, { status: 400 });
+        }
+        const report = await analyzeSkinSelfie(image, skinType, concerns);
+        return NextResponse.json({ report });
+      }
+
+      case "journalInsights": {
+        const { dailyLog } = body;
+        if (!dailyLog) {
+          return NextResponse.json({ error: "Missing daily log parameter" }, { status: 400 });
+        }
+        const insights = await correlateSkinRhythms(dailyLog);
+        return NextResponse.json({ insights });
       }
 
       default:
