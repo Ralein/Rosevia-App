@@ -77,7 +77,7 @@ export default function ThreeSkinSphere() {
       sheenColor: new THREE.Color(0xd4af37), // Gold velvet highlight
     });
 
-    const bioSphere = new THREE.THREE.Mesh(sphereGeometry, sphereMaterial);
+    const bioSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
     scene.add(bioSphere);
 
     // 6. Floating Molecular Active Particles

@@ -27,6 +27,12 @@ import {
   LogOut
 } from "lucide-react";
 import confetti from "canvas-confetti";
+import dynamic from "next/dynamic";
+import Interactive3DCard from "@/components/Interactive3DCard";
+
+const ThreeSkinSphere = dynamic(() => import("@/components/ThreeSkinSphere"), {
+  ssr: false,
+});
 
 interface Routine {
   routineName: string;
@@ -185,13 +191,16 @@ export default function Home() {
   // 1. GORGEOUS LANDING SPLASH IF NOT ONBOARDED (DARK APOTHECARY AESTHETIC)
   if (!profile || !routine) {
     return (
-      <div className="min-h-screen bg-rosevia-cream text-rosevia-charcoal flex flex-col justify-between p-6 md:p-12 relative overflow-hidden select-none">
+      <div className="min-h-screen bg-[#060D0B] text-rosevia-charcoal flex flex-col justify-between p-6 md:p-12 relative overflow-hidden select-none">
+        {/* Three.js Organic Background Canvas */}
+        <ThreeSkinSphere />
+
         {/* Soft background malachite/obsidian/gold glows */}
-        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-rosevia-rose/10 blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-rosevia-gold/5 blur-[100px]" />
+        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-rosevia-rose/5 blur-[120px] pointer-events-none z-0" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-rosevia-gold/3 blur-[100px] pointer-events-none z-0" />
 
         {/* Premium Navbar */}
-        <header className="flex justify-between items-center z-10 max-w-5xl mx-auto w-full">
+        <header className="flex justify-between items-center z-10 max-w-5xl mx-auto w-full relative">
           <div className="flex items-center space-x-2">
             <span className="font-serif text-3xl tracking-widest text-rosevia-gold uppercase font-semibold">Rosevia</span>
           </div>
@@ -199,28 +208,30 @@ export default function Home() {
         </header>
 
         {/* Main hero area */}
-        <main className="max-w-4xl mx-auto my-auto flex flex-col items-center text-center z-10 space-y-8 pt-12">
+        <main className="max-w-4xl mx-auto my-auto flex flex-col items-center text-center z-10 space-y-8 pt-12 relative">
           <div className="space-y-4">
-            <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full border border-rosevia-gold/30 bg-rosevia-sand/70 text-rosevia-clay text-[10px] tracking-widest uppercase font-bold shadow-sm">
+            <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full border border-rosevia-gold/30 bg-rosevia-sand/70 text-rosevia-clay text-[10px] tracking-widest uppercase font-bold shadow-sm backdrop-blur-md">
               <Sparkles size={12} className="text-rosevia-gold animate-pulse mr-1" />
               <span>Great skin is consistent, not complicated</span>
             </div>
-            <h1 className="text-4xl md:text-7xl font-serif text-rosevia-charcoal tracking-tight leading-tight">
+            <h1 className="text-4xl md:text-7xl font-serif text-rosevia-charcoal tracking-tight leading-tight select-none">
               The premium path to <br />
               <span className="italic text-rosevia-gold font-light">radiant, timeless</span> skin.
             </h1>
-            <p className="text-xs md:text-sm text-rosevia-clay max-w-xl mx-auto leading-relaxed font-semibold">
+            <p className="text-xs md:text-sm text-rosevia-clay max-w-xl mx-auto leading-relaxed font-semibold drop-shadow-md">
               We analyze your facial biology, cross-reference ingredient conflicts, adjust for climate UV, and build your bespoke clinical routines. You show up. Rosevia figures out the rest.
             </p>
           </div>
 
           <div className="pt-4 flex flex-col sm:flex-row gap-4 items-center justify-center w-full">
-            <button
-              onClick={() => navigateTo("/quiz")}
-              className="w-full sm:w-auto px-8 py-5 rounded-full text-xs font-bold tracking-widest uppercase bg-rosevia-gold text-rosevia-cream hover:bg-rosevia-rose shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center cursor-pointer transform hover:-translate-y-0.5"
-            >
-              Consult Our AI & Build Cycle <ChevronRight size={14} className="ml-2" />
-            </button>
+            <Interactive3DCard maxTilt={10} scale={1.05} className="rounded-full shadow-lg">
+              <button
+                onClick={() => navigateTo("/quiz")}
+                className="px-10 py-5 rounded-full text-xs font-bold tracking-widest uppercase bg-rosevia-gold text-rosevia-cream hover:bg-rosevia-rose transition-all duration-300 flex items-center justify-center cursor-pointer shadow-lg"
+              >
+                Consult Our AI & Build Cycle <ChevronRight size={14} className="ml-2" />
+              </button>
+            </Interactive3DCard>
           </div>
 
           {/* Premium Value Props Grid */}
@@ -231,15 +242,17 @@ export default function Home() {
               { title: "AI Selfie Analysis", desc: "Track weekly clinical skin index" },
               { title: "Vanity Reminders", desc: "Sunscreen, Serum, & Moisturizer alarms" }
             ].map((prop, idx) => (
-              <div key={idx} className="bg-rosevia-sand/65 border border-rosevia-rose/15 rounded-2xl p-5 text-center glass-card shadow-sm">
-                <p className="text-[10px] font-bold text-rosevia-gold tracking-wider uppercase">{prop.title}</p>
-                <p className="text-[9px] text-rosevia-clay mt-1.5 leading-relaxed font-semibold">{prop.desc}</p>
-              </div>
+              <Interactive3DCard key={idx} className="rounded-2xl shadow-sm" maxTilt={14}>
+                <div className="bg-rosevia-sand/65 border border-rosevia-rose/15 rounded-2xl p-5 text-center glass-card shadow-sm h-full flex flex-col justify-center select-none">
+                  <p className="text-[10px] font-bold text-rosevia-gold tracking-wider uppercase">{prop.title}</p>
+                  <p className="text-[9px] text-rosevia-clay mt-1.5 leading-relaxed font-semibold">{prop.desc}</p>
+                </div>
+              </Interactive3DCard>
             ))}
           </div>
         </main>
 
-        <footer className="text-center text-[9px] tracking-widest text-rosevia-clay/60 z-10 mt-12 font-semibold">
+        <footer className="text-center text-[9px] tracking-widest text-rosevia-clay/60 z-10 mt-12 font-semibold relative">
           © {new Date().getFullYear()} ROSEVIA CLINICAL. ALL RIGHTS RESERVED.
         </footer>
       </div>
