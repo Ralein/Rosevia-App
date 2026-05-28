@@ -24,11 +24,16 @@ import {
   Zap,
   Settings,
   Bell,
-  LogOut
+  LogOut,
+  Calendar,
+  Play,
+  Pause,
+  RotateCcw
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import dynamic from "next/dynamic";
 import Interactive3DCard from "@/components/Interactive3DCard";
+import { fetchDbState, postDbAction } from "@/lib/dbSync";
 
 const ThreeSkinSphere = dynamic(() => import("@/components/ThreeSkinSphere"), {
   ssr: false,
@@ -58,6 +63,16 @@ interface Reminders {
   spfInterval: number;
 }
 
+interface WeatherAdvice {
+  title: string;
+  desc: string;
+  uv: string;
+  humidity: string;
+  temp: string;
+  adjust: string;
+  city: string;
+}
+
 export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -83,9 +98,27 @@ export default function Home() {
     spfInterval: 2
   });
   
-  // Environmental simulator state
+  // Geolocation & Weather advice state
+  const [weatherAdvice, setWeatherAdvice] = useState<WeatherAdvice>({
+    title: "Atmospheric Shield Calibrating",
+    desc: "Fetching your real-time local UV and humidity parameters...",
+    uv: "Moderate (3)",
+    humidity: "50%",
+    temp: "15°C",
+    adjust: "Adaptive Shield",
+    city: "Local Location"
+  });
+  const [loadingWeather, setLoadingWeather] = useState<boolean>(false);
   const [climateSim, setClimateSim] = useState<string>("Seoul"); 
   
+  // Tablets & Supplements state
+  const [tablets, setTablets] = useState<any[]>([]);
+
+  // Wait timer widget states
+  const [waitTimer, setWaitTimer] = useState<number>(0);
+  const [timerMax, setTimerMax] = useState<number>(0);
+  const [isTimerActive, setIsTimerActive] = useState<boolean>(false);
+
   // Hormonal cycle sync state
   const [cycleSync, setCycleSync] = useState<boolean>(false);
   const [cyclePhase, setCyclePhase] = useState<string>("Follicular (Glow)");
@@ -94,42 +127,234 @@ export default function Home() {
     window.location.href = path;
   };
 
+  // Wait timer interval ticker
+  useEffect(() => {
+    let timerInterval: any;
+    if (isTimerActive && waitTimer > 0) {
+      timerInterval = setInterval(() => {
+        setWaitTimer((prev) => prev - 1);
+      }, 1000);
+    } else if (waitTimer === 0 && isTimerActive) {
+      setIsTimerActive(false);
+      if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+        new Notification("Skincare Wait Time Finished!", { 
+          body: "Your active layer has fully absorbed. You can apply the next step." 
+        });
+      }
+    }
+    return () => clearInterval(timerInterval);
+  }, [isTimerActive, waitTimer]);
+
+  const startWaitTimer = (minutes: number) => {
+    setWaitTimer(minutes * 60);
+    setTimerMax(minutes * 60);
+    setIsTimerActive(true);
+    if (typeof window !== "undefined" && "Notification" in window) {
+      Notification.requestPermission();
+    }
+  };
+
+  const stopWaitTimer = () => {
+    setIsTimerActive(false);
+  };
+
+  const resetWaitTimer = () => {
+    setIsTimerActive(false);
+    setWaitTimer(0);
+    setTimerMax(0);
+  };
+
+  const logTakePill = async (id: string, name: string) => {
+    const res = await postDbAction("take_pill", { id });
+    if (res && res.success) {
+      confetti({
+        particleCount: 80,
+        spread: 50,
+        colors: ["#D4AF37", "#FAF7F2", "#688A7D"]
+      });
+      // Update local storage and cabinet state
+      const savedCabinet = localStorage.getItem("rosevia_cabinet");
+      if (savedCabinet) {
+        const cabinetItems = JSON.parse(savedCabinet);
+        const updated = cabinetItems.map((p: any) => {
+          if (p.id === id) {
+            return { ...p, remainingTablets: res.remaining };
+          }
+          return p;
+        });
+        localStorage.setItem("rosevia_cabinet", JSON.stringify(updated));
+        setTablets(updated.filter((p: any) => p.category.toLowerCase() === "tablet"));
+      }
+    } else {
+      alert(`Could not log tablet dosage for "${name}". Check if you have tablets remaining!`);
+    }
+  };
+
+  const fetchRealTimeWeather = async (activeProfile: Profile, cityOverride?: string) => {
+    setLoadingWeather(true);
+    
+    // Coordinates mapping
+    const cityCoords: Record<string, { lat: number; lng: number; name: string }> = {
+      Seoul: { lat: 37.5665, lng: 126.9780, name: "Seoul" },
+      Miami: { lat: 25.7617, lng: -80.1918, name: "Miami" },
+      Sydney: { lat: -33.8688, lng: 151.2093, name: "Sydney" },
+      London: { lat: 51.5074, lng: -0.1278, name: "London" }
+    };
+
+    const fetchWeatherForCoords = async (latitude: number, longitude: number, cityName: string) => {
+      try {
+        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m&daily=uv_index_max&timezone=auto`;
+        const weatherRes = await fetch(weatherUrl);
+        const weatherData = await weatherRes.json();
+        
+        const currentTemp = Math.round(weatherData.current.temperature_2m);
+        const currentHumidity = Math.round(weatherData.current.relative_humidity_2m);
+        const currentUV = weatherData.daily.uv_index_max && weatherData.daily.uv_index_max[0] !== undefined 
+          ? Math.round(weatherData.daily.uv_index_max[0]) 
+          : 1;
+
+        // Fetch AI recommendation
+        const aiResponse = await fetch("/api/ai", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "weatherAdvice",
+            temp: currentTemp,
+            humidity: currentHumidity,
+            uv: currentUV,
+            city: cityName,
+            skinType: activeProfile.skinType,
+            concerns: activeProfile.concerns
+          })
+        });
+        
+        const aiData = await aiResponse.json();
+        if (aiData.advice) {
+          setWeatherAdvice({
+            title: aiData.advice.title,
+            desc: aiData.advice.desc,
+            uv: currentUV >= 8 ? `Extreme (${currentUV})` : currentUV >= 5 ? `High (${currentUV})` : currentUV >= 3 ? `Moderate (${currentUV})` : `Low (${currentUV})`,
+            humidity: `${currentHumidity}%`,
+            temp: `${currentTemp}°C`,
+            adjust: aiData.advice.adjust,
+            city: cityName
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load local weather details:", err);
+      } finally {
+        setLoadingWeather(false);
+      }
+    };
+
+    if (cityOverride && cityCoords[cityOverride]) {
+      const { lat, lng, name } = cityCoords[cityOverride];
+      await fetchWeatherForCoords(lat, lng, name);
+      return;
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          let cityName = "Local Position";
+          try {
+            const geocodeUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`;
+            const geocodeRes = await fetch(geocodeUrl);
+            const geocodeData = await geocodeRes.json();
+            cityName = geocodeData.city || geocodeData.locality || geocodeData.principalSubdivision || "Local Position";
+          } catch (err) {
+            console.error("Reverse geocoding error:", err);
+          }
+          await fetchWeatherForCoords(latitude, longitude, cityName);
+        },
+        async (error) => {
+          console.warn("Geolocation denied/failed. Falling back to default:", error);
+          await fetchWeatherForCoords(cityCoords.Seoul.lat, cityCoords.Seoul.lng, cityCoords.Seoul.name);
+        }
+      );
+    } else {
+      await fetchWeatherForCoords(cityCoords.Seoul.lat, cityCoords.Seoul.lng, cityCoords.Seoul.name);
+    }
+  };
+
   useEffect(() => {
     setMounted(true);
-    const savedProfile = localStorage.getItem("rosevia_profile");
-    const savedRoutine = localStorage.getItem("rosevia_routine");
     
-    if (savedProfile && savedRoutine) {
-      setProfile(JSON.parse(savedProfile));
-      setRoutine(JSON.parse(savedRoutine));
-    }
+    // Load local and database states
+    const syncData = async () => {
+      const dbState = await fetchDbState();
+      let activeProfile: Profile | null = null;
+      let activeRoutine: Routine | null = null;
 
-    const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-    const currentDay = days[new Date().getDay()];
-    setActiveDay(currentDay);
+      if (dbState) {
+        if (dbState.profile) {
+          activeProfile = dbState.profile;
+          setProfile(activeProfile);
+          localStorage.setItem("rosevia_profile", JSON.stringify(activeProfile));
+        }
+        if (dbState.routine) {
+          activeRoutine = dbState.routine;
+          setRoutine(activeRoutine);
+          localStorage.setItem("rosevia_routine", JSON.stringify(activeRoutine));
+        }
+        if (dbState.cabinet) {
+          localStorage.setItem("rosevia_cabinet", JSON.stringify(dbState.cabinet));
+          const tabletItems = dbState.cabinet.filter((p: any) => p.category.toLowerCase() === "tablet");
+          setTablets(tabletItems);
+        }
+      }
 
-    const savedStreak = localStorage.getItem("rosevia_streak");
-    if (savedStreak) {
-      setStreak(parseInt(savedStreak));
-    }
+      // If DB is blank, fall back to localStorage migration
+      if (!activeProfile) {
+        const savedProfile = localStorage.getItem("rosevia_profile");
+        if (savedProfile) {
+          activeProfile = JSON.parse(savedProfile);
+          setProfile(activeProfile);
+          postDbAction("save_profile", { profile: activeProfile });
+        }
+      }
+      if (!activeRoutine) {
+        const savedRoutine = localStorage.getItem("rosevia_routine");
+        if (savedRoutine) {
+          activeRoutine = JSON.parse(savedRoutine);
+          setRoutine(activeRoutine);
+          postDbAction("save_routine", { routine: activeRoutine });
+        }
+      }
 
-    const savedReminders = localStorage.getItem("rosevia_reminders");
-    if (savedReminders) {
-      setReminders(JSON.parse(savedReminders));
-    }
+      const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+      const currentDay = days[new Date().getDay()];
+      setActiveDay(currentDay);
 
-    const savedToggles = localStorage.getItem("rosevia_system_toggles");
-    if (savedToggles) {
-      const parsed = JSON.parse(savedToggles);
-      setCycleSync(parsed.hormoneSync || false);
-      setClimateSim(parsed.climateAdapt ? "Seoul" : "Seoul");
-    }
+      const savedStreak = localStorage.getItem("rosevia_streak");
+      if (savedStreak) {
+        setStreak(parseInt(savedStreak));
+      }
 
-    // Load active theme
-    const savedTheme = localStorage.getItem("rosevia_theme");
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
+      const savedReminders = localStorage.getItem("rosevia_reminders");
+      if (savedReminders) {
+        setReminders(JSON.parse(savedReminders));
+      }
+
+      const savedToggles = localStorage.getItem("rosevia_system_toggles");
+      if (savedToggles) {
+        const parsed = JSON.parse(savedToggles);
+        setCycleSync(parsed.hormoneSync || false);
+        setClimateSim(parsed.climateAdapt ? "Seoul" : "Seoul");
+      }
+
+      const savedTheme = localStorage.getItem("rosevia_theme");
+      if (savedTheme) {
+        setTheme(savedTheme);
+      }
+
+      if (activeProfile) {
+        fetchRealTimeWeather(activeProfile);
+      }
+    };
+
+    syncData();
   }, []);
 
   const handleLogout = () => {
@@ -143,6 +368,7 @@ export default function Home() {
     localStorage.removeItem("rosevia_theme");
     window.location.reload();
   };
+
 
   if (!mounted) {
     return (
