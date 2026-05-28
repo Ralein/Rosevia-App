@@ -34,6 +34,7 @@ import {
   EyeOff
 } from "lucide-react";
 import { fetchDbState, postDbAction } from "@/lib/dbSync";
+import { useRouter } from "next/navigation";
 
 interface Product {
   id: string;
@@ -80,8 +81,10 @@ export default function SmartCabinet() {
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
   const [showIngredients, setShowIngredients] = useState<Record<string, boolean>>({});
   
+  const router = useRouter();
+
   const navigateTo = (path: string) => {
-    window.location.href = path;
+    router.push(path);
   };
 
   const defaultCabinet: Product[] = [];

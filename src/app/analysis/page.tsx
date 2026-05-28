@@ -11,8 +11,10 @@ import {
   BookOpen,
   ShieldCheck, 
   Loader2,
-  Settings
+  Settings,
+  Calendar
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function SkinAnalysis() {
   const [profile, setProfile] = useState<any>(null);
@@ -22,8 +24,10 @@ export default function SkinAnalysis() {
   const [report, setReport] = useState<any>(null);
   const [theme, setTheme] = useState("Midnight Jade");
 
+  const router = useRouter();
+
   const navigateTo = (path: string) => {
-    window.location.href = path;
+    router.push(path);
   };
 
   useEffect(() => {
@@ -373,8 +377,7 @@ export default function SkinAnalysis() {
 
       </div>
 
-      {/* FLOATING BOTTOM PREMIUM NAVIGATION DOCK */}
-      <nav className={`fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md py-3.5 px-6 rounded-2xl flex justify-between items-center shadow-lg backdrop-blur-md z-50 ${
+      <nav className={`fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-lg py-3 px-4 rounded-2xl flex justify-between items-center shadow-lg backdrop-blur-md z-50 ${
         theme === "Rose Quartz Luxury"
           ? "bg-rosevia-rose-dark/90 border border-rosevia-rose-light/30 text-rosevia-charcoal"
           : "bg-[#060D0B]/88 border border-rosevia-gold/20 text-rosevia-charcoal"
@@ -406,6 +409,13 @@ export default function SkinAnalysis() {
         >
           <AlertCircle size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Checker</span>
+        </button>
+        <button 
+          onClick={() => navigateTo("/calendar")}
+          className={`flex flex-col items-center ${theme === "Rose Quartz Luxury" ? "text-rosevia-rosegold/60 hover:text-rosevia-rosegold" : "text-rosevia-clay hover:text-rosevia-gold"} shrink-0 cursor-pointer`}
+        >
+          <Calendar size={18} />
+          <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Calendar</span>
         </button>
         <button 
           onClick={() => navigateTo("/journal")}

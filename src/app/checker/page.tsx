@@ -10,11 +10,13 @@ import {
   CheckCircle,
   Clock,
   ShieldCheck,
-  AlertTriangle,
-  RotateCcw,
-  Loader2,
-  Settings
+  AlertTriangle, 
+  RotateCcw, 
+  Loader2, 
+  Settings,
+  Calendar
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface Product {
   id: string;
@@ -40,8 +42,10 @@ export default function ConflictChecker() {
   const [results, setResults] = useState<ConflictResult[] | null>(null);
   const [theme, setTheme] = useState("Midnight Jade");
 
+  const router = useRouter();
+
   const navigateTo = (path: string) => {
-    window.location.href = path;
+    router.push(path);
   };
 
   useEffect(() => {
@@ -381,8 +385,7 @@ export default function ConflictChecker() {
 
       </div>
 
-      {/* FLOATING BOTTOM PREMIUM NAVIGATION DOCK */}
-      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md glass-panel py-3.5 px-6 rounded-2xl flex justify-between items-center shadow-lg border border-rosevia-rose/40 z-50">
+      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-lg glass-panel py-3 px-4 rounded-2xl flex justify-between items-center shadow-lg border border-rosevia-rose/40 z-50">
         <button 
           onClick={() => navigateTo("/")}
           className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
@@ -410,6 +413,13 @@ export default function ConflictChecker() {
         >
           <AlertCircle size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Checker</span>
+        </button>
+        <button 
+          onClick={() => navigateTo("/calendar")}
+          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
+        >
+          <Calendar size={18} />
+          <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Calendar</span>
         </button>
         <button 
           onClick={() => navigateTo("/journal")}

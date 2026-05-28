@@ -16,8 +16,11 @@ import {
   LogOut,
   Palette,
   CheckCircle,
-  Volume2
+  Volume2,
+  Calendar
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { postDbAction } from "@/lib/dbSync";
 
 interface Reminders {
   serumTimeAM: string;
@@ -50,8 +53,10 @@ export default function SkincareSettings() {
   const [activeThemeVariant, setActiveThemeVariant] = useState("Midnight Jade");
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
 
+  const router = useRouter();
+
   const navigateTo = (path: string) => {
-    window.location.href = path;
+    router.push(path);
   };
 
   useEffect(() => {
@@ -102,7 +107,8 @@ export default function SkincareSettings() {
     }, 1000);
   };
 
-  const handleLogout = () => {
+  const handleDeleteProfile = async () => {
+    await postDbAction("delete_profile", {});
     localStorage.removeItem("rosevia_profile");
     localStorage.removeItem("rosevia_routine");
     localStorage.removeItem("rosevia_cabinet");
@@ -111,7 +117,7 @@ export default function SkincareSettings() {
     localStorage.removeItem("rosevia_reminders");
     localStorage.removeItem("rosevia_system_toggles");
     localStorage.removeItem("rosevia_theme");
-    navigateTo("/");
+    window.location.href = "/";
   };
 
   if (!mounted || !profile) {
@@ -206,10 +212,10 @@ export default function SkincareSettings() {
             </div>
           </div>
           <button 
-            onClick={handleLogout}
+            onClick={handleDeleteProfile}
             className="px-3.5 py-1.5 rounded-lg bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/40 text-[9px] font-bold tracking-wider text-rose-300 uppercase transition-all duration-300 flex items-center gap-1.5 cursor-pointer shadow-xs"
           >
-            <LogOut size={10} /> Logout
+            <LogOut size={10} /> Delete Profile
           </button>
         </div>
 
@@ -410,8 +416,7 @@ export default function SkincareSettings() {
 
       </div>
 
-      {/* FLOATING BOTTOM PREMIUM NAVIGATION DOCK (BALANCED FOR 6 ITEMS WITH SETTINGS) */}
-      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md glass-panel py-3.5 px-6 rounded-2xl flex justify-between items-center shadow-lg border border-rosevia-rose/40 z-50">
+      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-lg glass-panel py-3 px-4 rounded-2xl flex justify-between items-center shadow-lg border border-rosevia-rose/40 z-50">
         <button 
           onClick={() => navigateTo("/")}
           className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
@@ -441,8 +446,15 @@ export default function SkincareSettings() {
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Checker</span>
         </button>
         <button 
-          onClick={() => navigateTo("/journal")}
+          onClick={() => navigateTo("/calendar")}
           className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
+        >
+          <Calendar size={18} />
+          <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Calendar</span>
+        </button>
+        <button 
+          onClick={() => navigateTo("/journal")}
+          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer animate-none"
         >
           <BookOpen size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Diary</span>

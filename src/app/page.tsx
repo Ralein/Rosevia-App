@@ -357,7 +357,8 @@ export default function Home() {
     syncData();
   }, []);
 
-  const handleLogout = () => {
+  const handleDeleteProfile = async () => {
+    await postDbAction("delete_profile", {});
     localStorage.removeItem("rosevia_profile");
     localStorage.removeItem("rosevia_routine");
     localStorage.removeItem("rosevia_cabinet");
@@ -366,6 +367,10 @@ export default function Home() {
     localStorage.removeItem("rosevia_reminders");
     localStorage.removeItem("rosevia_system_toggles");
     localStorage.removeItem("rosevia_theme");
+    setStreak(0);
+    setProfile(null);
+    setRoutine(null);
+    setTablets([]);
     window.location.reload();
   };
 
@@ -574,10 +579,10 @@ export default function Home() {
 
                   <div className="border-t border-rosevia-rose/20 pt-3">
                     <button 
-                      onClick={handleLogout}
+                      onClick={handleDeleteProfile}
                       className="w-full py-2.5 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/40 text-[9px] font-bold tracking-wider text-rose-300 uppercase transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                     >
-                      <LogOut size={11} /> Reset Profile & Logout
+                      <LogOut size={11} /> Delete Profile
                     </button>
                   </div>
                 </div>

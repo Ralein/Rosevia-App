@@ -212,6 +212,16 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: "No tablets remaining or product not found" });
       }
 
+      case "delete_profile": {
+        await query("DELETE FROM profile WHERE id = 'default'");
+        await query("DELETE FROM routine WHERE id = 'default'");
+        await query("DELETE FROM cabinet");
+        await query("DELETE FROM journal");
+        await query("DELETE FROM scans");
+        await query("DELETE FROM calendar_events");
+        return NextResponse.json({ success: true });
+      }
+
       default:
         return NextResponse.json({ error: `Unknown action '${action}'` }, { status: 400 });
     }
