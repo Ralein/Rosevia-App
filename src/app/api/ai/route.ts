@@ -5,7 +5,8 @@ import {
   chatSkincare, 
   scanShelfProduct,
   analyzeSkinSelfie,
-  correlateSkinRhythms
+  correlateSkinRhythms,
+  generateWeatherAdvice
 } from "@/lib/groq";
 
 export async function POST(request: Request) {
@@ -18,6 +19,15 @@ export async function POST(request: Request) {
     }
 
     switch (action) {
+      case "weatherAdvice": {
+        const { temp, humidity, uv, city, skinType, concerns } = body;
+        if (temp === undefined || humidity === undefined || uv === undefined || !city || !skinType || !concerns) {
+          return NextResponse.json({ error: "Missing weather advice parameters" }, { status: 400 });
+        }
+        const advice = await generateWeatherAdvice({ temp, humidity, uv, city, skinType, concerns });
+        return NextResponse.json({ advice });
+      }
+
       case "quiz": {
         const { skinType, concerns, climate, age, experience } = body;
         if (!skinType || !concerns || !climate || !age || !experience) {

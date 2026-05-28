@@ -617,6 +617,8 @@ Provide unique, professional cosmetology advice rather than generic tips.`;
           title: "Hydration Glow Factor",
           desc: "Skin hydration ratings increase when water logging achieves 7+ glasses consecutively. This keeps epidermal volume plump and speeds up post-acne mark healing cycles!"
         }
+      ]
+    };
   }
 }
 
