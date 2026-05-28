@@ -617,8 +617,62 @@ Provide unique, professional cosmetology advice rather than generic tips.`;
           title: "Hydration Glow Factor",
           desc: "Skin hydration ratings increase when water logging achieves 7+ glasses consecutively. This keeps epidermal volume plump and speeds up post-acne mark healing cycles!"
         }
-      ]
-    };
   }
 }
 
+// 7. DYNAMIC WEATHER SKIN ADAPTIVE ADVICE
+export async function generateWeatherAdvice(weatherData: {
+  temp: number;
+  humidity: number;
+  uv: number;
+  city: string;
+  skinType: string;
+  concerns: string[];
+}) {
+  const client = getGroqClient();
+
+  if (!client) {
+    return {
+      title: "Adaptive Atmospheric Shield",
+      desc: `Detected weather in ${weatherData.city}: ${weatherData.temp}°C, Humidity ${weatherData.humidity}%, UV Index ${weatherData.uv}. Ensure you lock in hydration and apply broad-spectrum sunscreen.`,
+      adjust: weatherData.uv >= 5 ? "SPF Boosted" : "Hydration Lock"
+    };
+  }
+
+  try {
+    const prompt = `You are a clinical dermatologist and cosmetic scientist. Analyze the local weather and user's skin type to formulate dynamic skincare guidance.
+Weather details for ${weatherData.city}:
+- Temperature: ${weatherData.temp}°C
+- Relative Humidity: ${weatherData.humidity}%
+- UV Index: ${weatherData.uv}
+
+User Skin Profile:
+- Skin Type: ${weatherData.skinType}
+- Concerns: ${weatherData.concerns.join(", ")}
+
+You MUST return ONLY a valid JSON object matching this structure (no surrounding markdown code block, raw JSON only):
+{
+  "title": "Short Warning Title (e.g., Cold Wind Evaporation Warning, Extreme UV Degradation Warning)",
+  "desc": "Actionable, 2-3 sentence scientific explanation of how these specific metrics affect their skin barrier (TEWL, sebum secretion, collagen protection) and what products to layer or skip.",
+  "adjust": "Short status indicator (e.g., 'Moisture Heavy', 'Matte & Clean', 'SPF Boosted', 'Barrier Repair')"
+}
+
+Ensure the advice is precise. For example, if UV index is high (>=5), mandate SPF reapplication. If humidity is low (<40%), warn about trans-epidermal water loss. If temperature is high (>28°C), recommend skipping heavy occlusives to prevent sebum congestion.`;
+
+    const chatCompletion = await client.chat.completions.create({
+      messages: [{ role: "user", content: prompt }],
+      model: "llama-3.3-70b-versatile",
+      response_format: { type: "json_object" }
+    });
+
+    const responseText = chatCompletion.choices[0]?.message?.content || "";
+    return JSON.parse(responseText);
+  } catch (error) {
+    console.error("Groq weather advice error:", error);
+    return {
+      title: "Atmospheric Protection Plan",
+      desc: "Maintain a strong hydration lock with ceramides and always apply broad-spectrum SPF daily to prevent UV cellular damage.",
+      adjust: "Standard Care"
+    };
+  }
+}
