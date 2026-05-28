@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { 
   Plus, 
   FolderHeart, 
@@ -19,7 +19,19 @@ import {
   Calendar,
   X,
   Pill,
-  Minus
+  Minus,
+  Search,
+  Star,
+  StickyNote,
+  Package,
+  TrendingDown,
+  ShieldAlert,
+  Filter,
+  ChevronDown,
+  ChevronUp,
+  BarChart3,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { fetchDbState, postDbAction } from "@/lib/dbSync";
 
@@ -33,6 +45,9 @@ interface Product {
   ingredients: string[];
   totalTablets?: number;
   remainingTablets?: number;
+  notes?: string;
+  rating?: number;
+  addedDate?: string;
 }
 
 /* Known actives that conflict when layered together */
@@ -56,6 +71,14 @@ export default function SmartCabinet() {
   const [schedulingProduct, setSchedulingProduct] = useState<Product | null>(null);
   const [scheduleDays, setScheduleDays] = useState<string[]>(["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]);
   const [scheduleSlot, setScheduleSlot] = useState<"am" | "pm" | "both">("both");
+
+  // NEW: Search, filter, notes, ratings
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState<string>("All");
+  const [editingNotes, setEditingNotes] = useState<string | null>(null);
+  const [noteText, setNoteText] = useState("");
+  const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
+  const [showIngredients, setShowIngredients] = useState<Record<string, boolean>>({});
   
   const navigateTo = (path: string) => {
     window.location.href = path;
@@ -162,7 +185,8 @@ export default function SmartCabinet() {
         today.setMonth(today.getMonth() + (data.product.expiryMonths || 12));
         const formattedExpiry = today.toISOString().split("T")[0];
 
-        const isTablet = data.product.category.toLowerCase() === "tablet";
+        const productCategory = data.product.category.toLowerCase();
+        const isTablet = productCategory === "tablet" || productCategory === "tablets" || productCategory === "supplement" || productCategory === "supplements" || productCategory === "pill" || productCategory === "pills" || productCategory === "capsule" || productCategory === "capsules";
         const scannedProduct: Product = {
           id: `prod-${Date.now()}`,
           name: data.product.name,
@@ -171,7 +195,10 @@ export default function SmartCabinet() {
           expiryDate: formattedExpiry,
           fluidLevel: 100, 
           ingredients: data.product.ingredients || ["Water", "Glycerin"],
-          ...(isTablet && { totalTablets: 30, remainingTablets: 30 })
+          ...(isTablet && { totalTablets: 30, remainingTablets: 30 }),
+          notes: "",
+          rating: 0,
+          addedDate: new Date().toISOString().split("T")[0]
         };
 
         const updated = [scannedProduct, ...cabinet];
@@ -196,7 +223,9 @@ export default function SmartCabinet() {
     let updatedItem: Product | null = null;
     const updated = cabinet.map((p) => {
       if (p.id === id) {
-        if (p.category.toLowerCase() === "tablet") {
+        const pCat = p.category.toLowerCase();
+        const isTablet = pCat === "tablet" || pCat === "tablets" || pCat === "supplement" || pCat === "supplements" || pCat === "pill" || pCat === "pills" || pCat === "capsule" || pCat === "capsules";
+        if (isTablet) {
           const nextRemaining = Math.max(0, Math.min(p.totalTablets || 30, (p.remainingTablets || 0) + amount));
           updatedItem = { ...p, remainingTablets: nextRemaining };
           return updatedItem;
@@ -213,6 +242,29 @@ export default function SmartCabinet() {
     if (updatedItem) {
       await postDbAction("save_cabinet_item", { item: updatedItem });
     }
+  };
+
+  // NEW: Rating handler
+  const setProductRating = async (id: string, rating: number) => {
+    const updated = cabinet.map((p) => {
+      if (p.id === id) return { ...p, rating };
+      return p;
+    });
+    await saveCabinetToStorage(updated);
+    const item = updated.find(p => p.id === id);
+    if (item) await postDbAction("save_cabinet_item", { item });
+  };
+
+  // NEW: Notes handler
+  const saveProductNotes = async (id: string, notes: string) => {
+    const updated = cabinet.map((p) => {
+      if (p.id === id) return { ...p, notes };
+      return p;
+    });
+    await saveCabinetToStorage(updated);
+    const item = updated.find(p => p.id === id);
+    if (item) await postDbAction("save_cabinet_item", { item });
+    setEditingNotes(null);
   };
 
   const handleSaveManualSchedule = async (e: React.FormEvent) => {
@@ -360,7 +412,9 @@ export default function SmartCabinet() {
         warnings.push({ type: "expired", text: `"${p.name}" has expired! Avoid applying oxidized actives to your skin.` });
       }
 
-      if (p.category.toLowerCase() === "tablet") {
+      const pCat = p.category.toLowerCase();
+      const isTablet = pCat === "tablet" || pCat === "tablets" || pCat === "supplement" || pCat === "supplements" || pCat === "pill" || pCat === "pills" || pCat === "capsule" || pCat === "capsules";
+      if (isTablet) {
         if ((p.remainingTablets || 0) <= 5 && (p.remainingTablets || 0) > 0) {
           warnings.push({ type: "low", text: `"${p.name}" — only ${p.remainingTablets} tablets remaining. Reorder soon.` });
         }
@@ -400,6 +454,63 @@ export default function SmartCabinet() {
   };
 
   const cabinetWarnings = checkWarnings();
+
+  // NEW: Dashboard metrics
+  const dashboardMetrics = useMemo(() => {
+    const today = new Date();
+    let lowStock = 0;
+    let expiringSoon = 0;
+    let totalConflicts = 0;
+    const seenConflicts = new Set<string>();
+
+    for (const p of cabinet) {
+      // Low stock
+      const pCat = p.category.toLowerCase();
+      const isTablet = pCat === "tablet" || pCat === "tablets" || pCat === "supplement" || pCat === "supplements" || pCat === "pill" || pCat === "pills" || pCat === "capsule" || pCat === "capsules";
+      if (isTablet) {
+        if ((p.remainingTablets || 0) <= 5) lowStock++;
+      } else {
+        if (p.fluidLevel <= 20) lowStock++;
+      }
+      // Expiring
+      const exp = new Date(p.expiryDate);
+      const diffDays = Math.ceil((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      if (diffDays <= 30) expiringSoon++;
+
+      // Conflicts (deduplicated)
+      const conflicts = getConflictsForProduct(p);
+      for (const c of conflicts) {
+        const sorted = c.split("×").map(s => s.trim()).sort().join("|");
+        seenConflicts.add(sorted);
+      }
+    }
+    totalConflicts = seenConflicts.size;
+
+    const categories = new Set(cabinet.map(p => p.category));
+    return { total: cabinet.length, lowStock, expiringSoon, totalConflicts, categories: Array.from(categories) };
+  }, [cabinet]);
+
+  // NEW: Filtered + searched cabinet
+  const filteredCabinet = useMemo(() => {
+    let result = cabinet;
+    if (activeFilter !== "All") {
+      result = result.filter(p => {
+        const cat = p.category.toLowerCase();
+        const filter = activeFilter.toLowerCase();
+        if (filter === "moisturizer") return cat === "moisturizer" || cat === "spf" || cat === "cream";
+        return cat === filter;
+      });
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(p => 
+        p.name.toLowerCase().includes(q) || 
+        p.category.toLowerCase().includes(q) ||
+        p.ingredients.some(i => i.toLowerCase().includes(q))
+      );
+    }
+    return result;
+  }, [cabinet, activeFilter, searchQuery]);
 
   /* --- SVG Vial Renderers --- */
 
@@ -494,14 +605,39 @@ export default function SmartCabinet() {
     );
   };
 
+  /* Star Rating Component */
+  const StarRating = ({ rating, onRate, size = 12 }: { rating: number; onRate: (r: number) => void; size?: number }) => (
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          onClick={() => onRate(star === rating ? 0 : star)}
+          className="cursor-pointer transition-all duration-200 hover:scale-125"
+        >
+          <Star
+            size={size}
+            className={`transition-colors duration-200 ${
+              star <= rating
+                ? "text-rosevia-gold fill-rosevia-gold"
+                : "text-rosevia-rose/40"
+            }`}
+          />
+        </button>
+      ))}
+    </div>
+  );
+
   /* Shelf categories with display order */
   const SHELF_TIERS = ["Cleanser", "Toner", "Serum", "Moisturizer", "Tablet", "Mask"];
+  const FILTER_CATS = ["All", ...SHELF_TIERS];
 
   const getShelfItems = (cat: string): Product[] => {
     const catLower = cat.toLowerCase();
-    return cabinet.filter((p) => {
+    return filteredCabinet.filter((p) => {
       const pCat = p.category.toLowerCase();
       if (catLower === "moisturizer") return pCat === "moisturizer" || pCat === "spf" || pCat === "cream";
+      if (catLower === "serum") return pCat === "serum" || pCat === "treatment";
+      if (catLower === "tablet") return pCat === "tablet" || pCat === "supplement" || pCat === "supplements" || pCat === "tablets" || pCat === "pill" || pCat === "pills" || pCat === "capsule" || pCat === "capsules";
       return pCat === catLower;
     });
   };
@@ -539,6 +675,91 @@ export default function SmartCabinet() {
             RN
           </button>
         </header>
+
+        {/* === NEW: Premium Dashboard Summary === */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className={`${currentTheme.card} p-4 rounded-xl flex items-center gap-3 group hover:shadow-md transition-all duration-300`}>
+            <div className="w-10 h-10 rounded-xl bg-rosevia-gold/15 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+              <Package size={18} className={currentTheme.gold} />
+            </div>
+            <div>
+              <p className="text-[9px] tracking-wider uppercase font-bold text-rosevia-clay/60">Total Products</p>
+              <p className={`text-lg font-bold ${currentTheme.gold} leading-none mt-0.5`}>{dashboardMetrics.total}</p>
+            </div>
+          </div>
+          <div className={`${currentTheme.card} p-4 rounded-xl flex items-center gap-3 group hover:shadow-md transition-all duration-300`}>
+            <div className="w-10 h-10 rounded-xl bg-orange-500/15 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+              <TrendingDown size={18} className="text-orange-400" />
+            </div>
+            <div>
+              <p className="text-[9px] tracking-wider uppercase font-bold text-rosevia-clay/60">Low Stock</p>
+              <p className={`text-lg font-bold leading-none mt-0.5 ${dashboardMetrics.lowStock > 0 ? "text-orange-400" : currentTheme.gold.replace("text-", "text-")}`}>{dashboardMetrics.lowStock}</p>
+            </div>
+          </div>
+          <div className={`${currentTheme.card} p-4 rounded-xl flex items-center gap-3 group hover:shadow-md transition-all duration-300`}>
+            <div className="w-10 h-10 rounded-xl bg-rose-500/15 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+              <Clock size={18} className="text-rose-400" />
+            </div>
+            <div>
+              <p className="text-[9px] tracking-wider uppercase font-bold text-rosevia-clay/60">Expiring Soon</p>
+              <p className={`text-lg font-bold leading-none mt-0.5 ${dashboardMetrics.expiringSoon > 0 ? "text-rose-400" : currentTheme.gold.replace("text-", "text-")}`}>{dashboardMetrics.expiringSoon}</p>
+            </div>
+          </div>
+          <div className={`${currentTheme.card} p-4 rounded-xl flex items-center gap-3 group hover:shadow-md transition-all duration-300`}>
+            <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+              <ShieldAlert size={18} className="text-amber-400" />
+            </div>
+            <div>
+              <p className="text-[9px] tracking-wider uppercase font-bold text-rosevia-clay/60">Conflicts</p>
+              <p className={`text-lg font-bold leading-none mt-0.5 ${dashboardMetrics.totalConflicts > 0 ? "text-amber-400" : currentTheme.gold.replace("text-", "text-")}`}>{dashboardMetrics.totalConflicts}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* === NEW: Search & Filter Bar === */}
+        <div className={`${currentTheme.card} p-4 space-y-3 shadow-sm`}>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-rosevia-clay/50" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search products, ingredients, categories..."
+                className="w-full bg-rosevia-sand border border-rosevia-rose/30 rounded-xl pl-9 pr-4 py-2.5 text-xs focus:ring-1 focus:ring-rosevia-gold focus:outline-none text-rosevia-charcoal font-medium placeholder-rosevia-clay/40"
+              />
+              {searchQuery && (
+                <button 
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-rosevia-clay/50 hover:text-rosevia-gold cursor-pointer"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+          </div>
+          {/* Category Filter Chips */}
+          <div className="flex flex-wrap gap-1.5">
+            {FILTER_CATS.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveFilter(cat)}
+                className={`text-[9px] font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider border transition-all duration-300 cursor-pointer ${
+                  activeFilter === cat
+                    ? "bg-rosevia-gold text-rosevia-cream border-rosevia-gold shadow-sm"
+                    : "bg-rosevia-cream border-rosevia-rose/30 text-rosevia-clay hover:border-rosevia-gold/50"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+          {searchQuery && (
+            <p className={`text-[10px] ${currentTheme.accent} font-semibold`}>
+              {filteredCabinet.length} result{filteredCabinet.length !== 1 ? "s" : ""} found
+            </p>
+          )}
+        </div>
 
         {/* Action scheduling banner status alerts */}
         {scheduledStatus && (
@@ -584,6 +805,7 @@ export default function SmartCabinet() {
               type="text"
               value={newProductName}
               onChange={(e) => setNewProductName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleScanProduct(); }}
               placeholder="Enter product brand name to scan..."
               disabled={scanning}
               className="flex-1 bg-rosevia-sand border border-rosevia-rose/30 rounded-xl px-4 py-3 text-xs focus:ring-1 focus:ring-rosevia-gold focus:outline-none disabled:opacity-50 text-rosevia-charcoal font-medium placeholder-rosevia-clay/40"
@@ -606,6 +828,9 @@ export default function SmartCabinet() {
             const items = getShelfItems(cat);
             const isTabletTier = cat === "Tablet";
             
+            // Hide empty shelves when filtering
+            if (activeFilter !== "All" && items.length === 0) return null;
+
             return (
               <div key={cat} className="space-y-4 relative">
                 <div className="flex justify-between items-center border-b border-rosevia-rose/25 pb-1">
@@ -618,19 +843,37 @@ export default function SmartCabinet() {
                 {items.length === 0 ? (
                   <p className={`text-[10px] ${currentTheme.accent} opacity-60 italic py-2 pl-2`}>No {cat.toLowerCase()}s on this shelf tier.</p>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pb-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-2">
                     {items.map((prod) => {
                       const prodConflicts = getConflictsForProduct(prod);
-                      const isTablet = prod.category.toLowerCase() === "tablet";
+                      const pCat = prod.category.toLowerCase();
+                      const isTablet = pCat === "tablet" || pCat === "tablets" || pCat === "supplement" || pCat === "supplements" || pCat === "pill" || pCat === "pills" || pCat === "capsule" || pCat === "capsules";
+                      const isExpanded = expandedProduct === prod.id;
+                      const isShowingIngredients = showIngredients[prod.id];
+                      const daysUntilExpiry = Math.ceil((new Date(prod.expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                       
                       return (
                         <div 
                           key={prod.id} 
-                          className={`bg-rosevia-sand/85 p-4 rounded-xl relative flex flex-col justify-between space-y-3 group border border-rosevia-rose/30 shadow-sm transition-all duration-300 hover:border-rosevia-gold/50`}
+                          className={`bg-rosevia-sand/85 p-4 rounded-xl relative flex flex-col justify-between space-y-3 group border border-rosevia-rose/30 shadow-sm transition-all duration-300 hover:border-rosevia-gold/50 hover:shadow-md ${
+                            daysUntilExpiry <= 0 ? "ring-1 ring-rose-500/40" : ""
+                          }`}
                         >
-                          {/* Expiry Badge */}
-                          <div className="absolute top-3 right-3 flex items-center space-x-1 text-[8px] font-bold bg-rosevia-cream border border-rosevia-rose/40 px-1.5 py-0.5 rounded text-rosevia-gold">
-                            <Clock size={8} /> <span>{prod.pao} PAO</span>
+                          {/* Status Badges Row */}
+                          <div className="absolute top-3 right-3 flex items-center gap-1.5">
+                            {daysUntilExpiry <= 30 && daysUntilExpiry > 0 && (
+                              <span className="text-[7px] font-bold bg-amber-100 border border-amber-300/60 px-1.5 py-0.5 rounded text-amber-700 animate-pulse">
+                                {daysUntilExpiry}d left
+                              </span>
+                            )}
+                            {daysUntilExpiry <= 0 && (
+                              <span className="text-[7px] font-bold bg-rose-100 border border-rose-300/60 px-1.5 py-0.5 rounded text-rose-700">
+                                EXPIRED
+                              </span>
+                            )}
+                            <div className="flex items-center space-x-1 text-[8px] font-bold bg-rosevia-cream border border-rosevia-rose/40 px-1.5 py-0.5 rounded text-rosevia-gold">
+                              <Clock size={8} /> <span>{prod.pao} PAO</span>
+                            </div>
                           </div>
 
                           {/* Conflict Warning Badge */}
@@ -650,7 +893,7 @@ export default function SmartCabinet() {
                           )}
 
                           {/* Top layout */}
-                          <div className="flex items-center space-x-3">
+                          <div className="flex items-center space-x-3 pt-1">
                             {isTablet ? (
                               <div className="shrink-0">
                                 <RenderTabletBlister total={prod.totalTablets || 30} remaining={prod.remainingTablets || 0} />
@@ -670,18 +913,45 @@ export default function SmartCabinet() {
                                   {prod.remainingTablets || 0} / {prod.totalTablets || 30} tablets remaining
                                 </span>
                               )}
+                              {/* Star Rating */}
+                              <div className="mt-1.5">
+                                <StarRating 
+                                  rating={prod.rating || 0} 
+                                  onRate={(r) => setProductRating(prod.id, r)} 
+                                />
+                              </div>
                             </div>
                           </div>
 
-                          {/* Ingredients Tags */}
-                          <div className="flex flex-wrap gap-1">
-                            {prod.ingredients.slice(0, 3).map((ing, i) => (
-                              <span key={i} className="text-[8px] bg-rosevia-cream border border-rosevia-rose/25 text-rosevia-clay px-1.5 py-0.2 rounded font-medium">
-                                {ing}
-                              </span>
-                            ))}
-                            {prod.ingredients.length > 3 && (
-                              <span className="text-[8px] text-rosevia-gold font-bold self-center ml-0.5">+{prod.ingredients.length - 3}</span>
+                          {/* Ingredients Toggle */}
+                          <div>
+                            <button
+                              onClick={() => setShowIngredients(prev => ({ ...prev, [prod.id]: !prev[prod.id] }))}
+                              className="flex items-center gap-1 text-[9px] font-bold text-rosevia-clay/70 hover:text-rosevia-gold transition-colors cursor-pointer uppercase tracking-wider"
+                            >
+                              {isShowingIngredients ? <EyeOff size={10} /> : <Eye size={10} />}
+                              {isShowingIngredients ? "Hide" : "Show"} Ingredients ({prod.ingredients.length})
+                            </button>
+                            {isShowingIngredients && (
+                              <div className="flex flex-wrap gap-1 mt-1.5 animate-fade-in">
+                                {prod.ingredients.map((ing, i) => (
+                                  <span key={i} className="text-[8px] bg-rosevia-cream border border-rosevia-rose/25 text-rosevia-clay px-1.5 py-0.5 rounded font-medium">
+                                    {ing}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            {!isShowingIngredients && (
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {prod.ingredients.slice(0, 3).map((ing, i) => (
+                                  <span key={i} className="text-[8px] bg-rosevia-cream border border-rosevia-rose/25 text-rosevia-clay px-1.5 py-0.5 rounded font-medium">
+                                    {ing}
+                                  </span>
+                                ))}
+                                {prod.ingredients.length > 3 && (
+                                  <span className="text-[8px] text-rosevia-gold font-bold self-center ml-0.5">+{prod.ingredients.length - 3}</span>
+                                )}
+                              </div>
                             )}
                           </div>
 
@@ -740,22 +1010,80 @@ export default function SmartCabinet() {
                                 </button>
                               </div>
 
-                              {/* Schedule Button — Opens modal with AI/Manual choice */}
-                              <button
-                                onClick={() => setSchedulingProduct(prod)}
-                                className="px-2 py-1 rounded bg-rosevia-gold/15 border border-rosevia-gold/30 hover:bg-rosevia-gold hover:text-rosevia-cream text-[8px] font-bold tracking-wider uppercase text-rosevia-gold transition-all duration-300 cursor-pointer flex items-center gap-1 shadow-xs"
-                                title="Schedule product into your routine"
-                              >
-                                <CalendarDays size={9} /> Schedule
-                              </button>
+                              <div className="flex items-center gap-1">
+                                {/* Notes Button */}
+                                <button
+                                  onClick={() => {
+                                    if (editingNotes === prod.id) {
+                                      setEditingNotes(null);
+                                    } else {
+                                      setEditingNotes(prod.id);
+                                      setNoteText(prod.notes || "");
+                                    }
+                                  }}
+                                  className={`px-1.5 py-1 rounded border text-[8px] font-bold tracking-wider uppercase transition-all duration-300 cursor-pointer flex items-center gap-0.5 shadow-xs ${
+                                    prod.notes 
+                                      ? "bg-rosevia-sage/20 border-rosevia-sage/40 text-rosevia-sage hover:bg-rosevia-sage/30"
+                                      : "bg-rosevia-gold/10 border-rosevia-gold/25 text-rosevia-gold/70 hover:bg-rosevia-gold/20 hover:text-rosevia-gold"
+                                  }`}
+                                  title="Product notes"
+                                >
+                                  <StickyNote size={8} />
+                                </button>
 
-                              <button 
-                                onClick={() => deleteProduct(prod.id)}
-                                className="text-rosevia-clay hover:text-rosevia-terracotta transition-all cursor-pointer p-1"
-                              >
-                                <Trash2 size={12} />
-                              </button>
+                                {/* Schedule Button */}
+                                <button
+                                  onClick={() => setSchedulingProduct(prod)}
+                                  className="px-2 py-1 rounded bg-rosevia-gold/15 border border-rosevia-gold/30 hover:bg-rosevia-gold hover:text-rosevia-cream text-[8px] font-bold tracking-wider uppercase text-rosevia-gold transition-all duration-300 cursor-pointer flex items-center gap-1 shadow-xs"
+                                  title="Schedule product into your routine"
+                                >
+                                  <CalendarDays size={9} /> Schedule
+                                </button>
+
+                                <button 
+                                  onClick={() => deleteProduct(prod.id)}
+                                  className="text-rosevia-clay hover:text-rosevia-terracotta transition-all cursor-pointer p-1"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
                             </div>
+
+                            {/* Notes Editor (Expanded) */}
+                            {editingNotes === prod.id && (
+                              <div className="mt-2 space-y-2 animate-fade-in border-t border-rosevia-rose/15 pt-2">
+                                <textarea
+                                  value={noteText}
+                                  onChange={(e) => setNoteText(e.target.value)}
+                                  placeholder="Add personal notes... (e.g. 'Caused mild tingling first week, adjusted to every other night')"
+                                  className="w-full bg-rosevia-cream border border-rosevia-rose/30 rounded-lg px-3 py-2 text-[10px] focus:ring-1 focus:ring-rosevia-gold focus:outline-none text-rosevia-charcoal font-medium placeholder-rosevia-clay/40 resize-none"
+                                  rows={3}
+                                />
+                                <div className="flex gap-1.5">
+                                  <button
+                                    onClick={() => saveProductNotes(prod.id, noteText)}
+                                    className="px-3 py-1.5 rounded-lg bg-rosevia-gold/15 border border-rosevia-gold/30 text-[9px] font-bold tracking-wider uppercase text-rosevia-gold hover:bg-rosevia-gold hover:text-rosevia-cream cursor-pointer transition-all flex items-center gap-1"
+                                  >
+                                    <CheckCircle size={10} /> Save
+                                  </button>
+                                  <button
+                                    onClick={() => setEditingNotes(null)}
+                                    className="px-3 py-1.5 rounded-lg bg-rosevia-cream border border-rosevia-rose/30 text-[9px] font-bold tracking-wider uppercase text-rosevia-clay hover:text-rosevia-gold cursor-pointer transition-all"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Saved Note Display */}
+                            {prod.notes && editingNotes !== prod.id && (
+                              <div className="mt-1.5 bg-rosevia-cream/60 border border-rosevia-rose/15 rounded-lg p-2">
+                                <p className="text-[9px] text-rosevia-clay/80 font-medium leading-relaxed italic">
+                                  📝 {prod.notes}
+                                </p>
+                              </div>
+                            )}
                           </div>
 
                         </div>

@@ -399,6 +399,41 @@ export async function scanShelfProduct(productName: string) {
         pao: "6M",
         expiryMonths: 9,
         ingredients: ["Water", "Ethoxydiglycol", "L-Ascorbic Acid (Vitamin C)", "Glycerin", "Propylene Glycol", "Laureth-23", "Alpha Tocopherol (Vitamin E)", "Ferulic Acid"]
+      },
+      "glutathione": {
+        name: "L-Glutathione Reduced Supplement (500mg)",
+        category: "Tablet",
+        pao: "N/A",
+        expiryMonths: 24,
+        ingredients: ["Glutathione", "Microcrystalline Cellulose", "Dicalcium Phosphate", "Magnesium Stearate", "Silicon Dioxide"]
+      },
+      "vitamin c tablet": {
+        name: "Vitamin C Supplement (1000mg)",
+        category: "Tablet",
+        pao: "N/A",
+        expiryMonths: 24,
+        ingredients: ["Ascorbic Acid (Vitamin C)", "Rose Hips", "Bioflavonoids", "Microcrystalline Cellulose", "Magnesium Stearate"]
+      },
+      "zinc": {
+        name: "Zinc Picolinate Tablet (50mg)",
+        category: "Tablet",
+        pao: "N/A",
+        expiryMonths: 24,
+        ingredients: ["Zinc (as Zinc Picolinate)", "Dicalcium Phosphate", "Microcrystalline Cellulose", "Magnesium Stearate"]
+      },
+      "magnesium": {
+        name: "Magnesium Glycinate Supplement (400mg)",
+        category: "Tablet",
+        pao: "N/A",
+        expiryMonths: 24,
+        ingredients: ["Magnesium (as Magnesium Bisglycinate)", "Cellulose", "Stearic Acid", "Silicon Dioxide"]
+      },
+      "collagen": {
+        name: "Hydrolyzed Collagen Peptides Supplement",
+        category: "Tablet",
+        pao: "N/A",
+        expiryMonths: 24,
+        ingredients: ["Hydrolyzed Collagen Peptides (Types I & III)", "Vitamin C (as Ascorbic Acid)", "Biotin"]
       }
     };
 
@@ -410,31 +445,74 @@ export async function scanShelfProduct(productName: string) {
     }
 
     // Default return for custom user typed products
+    const lowerName = productName.toLowerCase();
+    const isSupplementKeyword = 
+      lowerName.includes("glutathione") || 
+      lowerName.includes("zinc") || 
+      lowerName.includes("magnesium") || 
+      lowerName.includes("collagen") || 
+      lowerName.includes("tablet") || 
+      lowerName.includes("capsule") || 
+      lowerName.includes("pill") || 
+      lowerName.includes("supplement") || 
+      lowerName.includes("biotin") || 
+      lowerName.includes("vitamin d") || 
+      lowerName.includes("multivitamin") || 
+      lowerName.includes("omega") || 
+      lowerName.includes("calcium") || 
+      lowerName.includes("iron") ||
+      lowerName.includes("vitamin c tablet");
+
+    const isSkincareKeyword = 
+      lowerName.includes("serum") || 
+      lowerName.includes("cream") || 
+      lowerName.includes("moisturizer") || 
+      lowerName.includes("cleanser") || 
+      lowerName.includes("wash") || 
+      lowerName.includes("toner") || 
+      lowerName.includes("gel") || 
+      lowerName.includes("mask") || 
+      lowerName.includes("spf") || 
+      lowerName.includes("sunscreen");
+
+    let category = "Toner";
+    if (isSupplementKeyword && !isSkincareKeyword) {
+      category = "Tablet";
+    } else if (lowerName.includes("cleans")) {
+      category = "Cleanser";
+    } else if (lowerName.includes("moist") || lowerName.includes("cream")) {
+      category = "Moisturizer";
+    } else if (lowerName.includes("serum")) {
+      category = "Serum";
+    } else if (lowerName.includes("mask")) {
+      category = "Mask";
+    }
+
     return {
       name: productName.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
-      category: productName.toLowerCase().includes("cleans") ? "Cleanser" :
-                productName.toLowerCase().includes("moist") || productName.toLowerCase().includes("cream") ? "Moisturizer" :
-                productName.toLowerCase().includes("serum") ? "Serum" : "Toner",
-      pao: "12M",
+      category,
+      pao: category === "Tablet" ? "N/A" : "12M",
       expiryMonths: 12,
-      ingredients: ["Water", "Glycerin", "Phenoxyethanol", "Butylene Glycol", "Caprylyl Glycol"]
+      ingredients: category === "Tablet" 
+        ? ["Active Supplement Extract", "Microcrystalline Cellulose", "Magnesium Stearate"] 
+        : ["Water", "Glycerin", "Phenoxyethanol", "Butylene Glycol", "Caprylyl Glycol"]
     };
   }
 
   try {
-    const prompt = `You are a global skincare product database. Given the product name or scan text, extract details.
+    const prompt = `You are a global skincare and wellness supplement database. Given the product name or scan text, extract details.
 Product input: "${productName}"
 
 You MUST return ONLY a valid JSON object matching this structure:
 {
   "name": "Full branded product name",
-  "category": "Cleanser" | "Toner" | "Serum" | "Moisturizer" | "SPF" | "Treatment",
-  "pao": "e.g., 6M, 12M, 24M",
+  "category": "Cleanser" | "Toner" | "Serum" | "Moisturizer" | "SPF" | "Treatment" | "Tablet" | "Mask",
+  "pao": "e.g., 6M, 12M, 24M, or N/A",
   "expiryMonths": 12,
   "ingredients": ["Ingredient 1", "Ingredient 2", ...]
 }
 
-Do your best to supply accurate, standard cosmetic ingredients for this product. If it is completely unrecognizable, invent a plausible ingredient list based on typical formulation of its category.`;
+Do your best to supply accurate, standard cosmetic or pharmaceutical active ingredients for this product. If it is an oral supplement, vitamin, capsule, or tablet (like Glutathione, Vitamin C tablets, Zinc, Magnesium, Collagen, etc.), you MUST classify it as "Tablet" and set "pao" to "N/A". If it is completely unrecognizable, invent a plausible ingredient list based on typical formulation of its category.`;
 
     const chatCompletion = await client.chat.completions.create({
       messages: [{ role: "user", content: prompt }],

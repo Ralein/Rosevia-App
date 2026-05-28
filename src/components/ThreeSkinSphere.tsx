@@ -200,12 +200,14 @@ export default function ThreeSkinSphere() {
     window.addEventListener("resize", handleResize);
 
     // 10. Animation Loop
-    const clock = new THREE.Clock();
+    const timer = new THREE.Timer();
+    let requestID: number;
 
-    const animate = () => {
-      const requestID = requestAnimationFrame(animate);
+    const animate = (timestamp?: number) => {
+      requestID = requestAnimationFrame(animate);
 
-      const time = clock.getElapsedTime();
+      timer.update(timestamp);
+      const time = timer.getElapsed();
 
       // Slow orbital rotations
       bioSphere.rotation.y = time * 0.06;
@@ -278,6 +280,7 @@ export default function ThreeSkinSphere() {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleResize);
+      cancelAnimationFrame(requestID);
       
       sphereGeometry.dispose();
       sphereMaterial.dispose();
