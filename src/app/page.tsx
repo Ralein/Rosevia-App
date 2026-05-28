@@ -84,6 +84,7 @@ interface WeatherAdvice {
 }
 
 export default function Home() {
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [routine, setRoutine] = useState<Routine | null>(null);
@@ -134,7 +135,7 @@ export default function Home() {
   const [cyclePhase, setCyclePhase] = useState<string>("Follicular (Glow)");
 
   const navigateTo = (path: string) => {
-    window.location.href = path;
+    router.push(path);
   };
 
   // Wait timer interval ticker
@@ -200,16 +201,11 @@ export default function Home() {
     }
   };
 
-  const fetchRealTimeWeather = async (activeProfile: Profile, cityOverride?: string) => {
+  const fetchRealTimeWeather = async (activeProfile: Profile) => {
     setLoadingWeather(true);
     
-    // Coordinates mapping
-    const cityCoords: Record<string, { lat: number; lng: number; name: string }> = {
-      Seoul: { lat: 37.5665, lng: 126.9780, name: "Seoul" },
-      Miami: { lat: 25.7617, lng: -80.1918, name: "Miami" },
-      Sydney: { lat: -33.8688, lng: 151.2093, name: "Sydney" },
-      London: { lat: 51.5074, lng: -0.1278, name: "London" }
-    };
+    // Default fallback coordinates (Coimbatore)
+    const fallbackCoords = { lat: 11.0168, lng: 76.9558, name: "Coimbatore" };
 
     const fetchWeatherForCoords = async (latitude: number, longitude: number, cityName: string) => {
       try {
@@ -257,12 +253,6 @@ export default function Home() {
       }
     };
 
-    if (cityOverride && cityCoords[cityOverride]) {
-      const { lat, lng, name } = cityCoords[cityOverride];
-      await fetchWeatherForCoords(lat, lng, name);
-      return;
-    }
-
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -280,11 +270,11 @@ export default function Home() {
         },
         async (error) => {
           console.warn("Geolocation denied/failed. Falling back to default:", error);
-          await fetchWeatherForCoords(cityCoords.Seoul.lat, cityCoords.Seoul.lng, cityCoords.Seoul.name);
+          await fetchWeatherForCoords(fallbackCoords.lat, fallbackCoords.lng, fallbackCoords.name);
         }
       );
     } else {
-      await fetchWeatherForCoords(cityCoords.Seoul.lat, cityCoords.Seoul.lng, cityCoords.Seoul.name);
+      await fetchWeatherForCoords(fallbackCoords.lat, fallbackCoords.lng, fallbackCoords.name);
     }
   };
 
@@ -351,7 +341,7 @@ export default function Home() {
       if (savedToggles) {
         const parsed = JSON.parse(savedToggles);
         setCycleSync(parsed.hormoneSync || false);
-        setClimateSim(parsed.climateAdapt ? "Seoul" : "Seoul");
+        setClimateSim("local");
       }
 
       const savedTheme = localStorage.getItem("rosevia_theme");
@@ -525,58 +515,6 @@ export default function Home() {
     localStorage.setItem("rosevia_streak", newStreak.toString());
   };
 
-  // Environment modifier tips with ambient background styles
-  const getEnvironmentalTips = () => {
-    switch (climateSim) {
-      case "Seoul":
-        return {
-          title: "Cold & Dry Wind Warning",
-          desc: "Seoul relative humidity has dropped to 28%. Trans-epidermal water loss is elevated. We recommend adding a secondary hydration lock: apply Hyaluronic Acid to slightly damp skin, wait 2 minutes, and seal with a lipid-rich Ceramide cream.",
-          uv: "Low (1)",
-          humidity: "28%",
-          temp: "6°C",
-          adjust: "Moisture Heavy",
-          ambientBg: "from-blue-950/40 via-indigo-950/20 to-[#060D0B] border-blue-900/30",
-          accentColor: "text-blue-300 bg-blue-950/60 border border-blue-800/40"
-        };
-      case "Miami":
-        return {
-          title: "Hot & Humid Sebum Nudge",
-          desc: "Miami relative humidity is high (84% RH). Sebaceous gland activity is accelerated. Skip heavy occlusive lotions today. Switch to a lightweight matte water-gel, and ensure a thorough clinical double-cleanse tonight to melt sweat lipids.",
-          uv: "Extreme (9)",
-          humidity: "84%",
-          temp: "31°C",
-          adjust: "Matte & Clean",
-          ambientBg: "from-teal-950/40 via-emerald-950/20 to-[#060D0B] border-emerald-900/30",
-          accentColor: "text-emerald-300 bg-emerald-950/60 border border-emerald-800/40"
-        };
-      case "Sydney":
-        return {
-          title: "Critical UV Index Warning",
-          desc: "Sydney UV index is currently at a critical 11. Solar radiation is aggressively splitting dermal collagen cells. SPF 50 reapplication is mandatory every 2 hours! Apply Vitamin C underneath your sunscreen to boost antioxidant defense.",
-          uv: "Index 11 (Critical)",
-          humidity: "50%",
-          temp: "27°C",
-          adjust: "SPF Boosted",
-          ambientBg: "from-amber-950/40 via-orange-950/20 to-[#060D0B] border-amber-900/30",
-          accentColor: "text-amber-300 bg-amber-950/60 border border-amber-800/40"
-        };
-      case "London":
-      default:
-        return {
-          title: "Particulate Pollution Warning",
-          desc: "London relative air quality is compromised with elevated PM2.5 particulate matter. Ensure a double cleanse tonight to pull atmospheric carbon compounds from pores, and apply Niacinamide in your AM layout to form a protective shield.",
-          uv: "Moderate (3)",
-          humidity: "65%",
-          temp: "15°C",
-          adjust: "Antioxidant Rich",
-          ambientBg: "from-purple-950/40 via-slate-950/20 to-[#060D0B] border-purple-900/30",
-          accentColor: "text-purple-300 bg-purple-950/60 border border-purple-800/40"
-        };
-    }
-  };
-
-  const env = getEnvironmentalTips();
 
   return (
     <div className={`min-h-screen ${currentTheme.bg} pb-28 select-none transition-colors duration-500`}>
@@ -742,42 +680,20 @@ export default function Home() {
               ? "from-teal-950/40 via-emerald-950/20 to-[#060D0B] border-emerald-900/30"
               : "from-purple-950/40 via-slate-950/20 to-[#060D0B] border-purple-900/30"
           } shadow-sm space-y-4`}>
-            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+            <div className="flex justify-between items-center gap-3 w-full">
               <div className="flex items-center space-x-2">
                 <MapPin size={16} className="text-rosevia-clay" />
                 <h3 className="text-xs font-bold tracking-widest uppercase text-rosevia-clay">Climate Intelligence</h3>
               </div>
-              <div className="flex bg-rosevia-cream/60 rounded-lg p-0.5 border border-rosevia-rose/30 self-start flex-wrap gap-0.5">
-                <button
-                  onClick={() => {
-                    setClimateSim("local");
-                    if (profile) fetchRealTimeWeather(profile);
-                  }}
-                  className={`text-[9px] font-bold px-2.5 py-1 rounded transition-all duration-300 cursor-pointer flex items-center gap-1 ${
-                    climateSim === "local" 
-                      ? "bg-rosevia-gold text-rosevia-cream shadow-xs"
-                      : "text-rosevia-clay/70 hover:text-rosevia-clay"
-                  }`}
-                >
-                  <MapPin size={9} /> My Location
-                </button>
-                {["Seoul", "Miami", "Sydney", "London"].map((city) => (
-                  <button
-                    key={city}
-                    onClick={() => {
-                      setClimateSim(city);
-                      if (profile) fetchRealTimeWeather(profile, city);
-                    }}
-                    className={`text-[9px] font-bold px-2.5 py-1 rounded transition-all duration-300 cursor-pointer ${
-                      climateSim === city 
-                        ? "bg-rosevia-gold text-rosevia-cream shadow-xs"
-                        : "text-rosevia-clay/70 hover:text-rosevia-clay"
-                    }`}
-                  >
-                    {city}
-                  </button>
-                ))}
-              </div>
+              <button
+                onClick={() => {
+                  if (profile) fetchRealTimeWeather(profile);
+                }}
+                disabled={loadingWeather}
+                className="text-[9px] font-bold px-3 py-1.5 rounded-lg bg-rosevia-cream/80 hover:bg-rosevia-gold hover:text-rosevia-cream border border-rosevia-rose/30 text-rosevia-clay disabled:opacity-50 transition-all duration-300 cursor-pointer flex items-center gap-1 shadow-xs font-semibold uppercase tracking-wider shrink-0"
+              >
+                {loadingWeather ? <RefreshCw size={10} className="animate-spin" /> : <RefreshCw size={10} />} Refresh
+              </button>
             </div>
 
             {/* Weather Metrics */}

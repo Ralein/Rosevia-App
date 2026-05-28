@@ -676,46 +676,6 @@ export default function SmartCabinet() {
           </button>
         </header>
 
-        {/* === NEW: Premium Dashboard Summary === */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className={`${currentTheme.card} p-4 rounded-xl flex items-center gap-3 group hover:shadow-md transition-all duration-300`}>
-            <div className="w-10 h-10 rounded-xl bg-rosevia-gold/15 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-              <Package size={18} className={currentTheme.gold} />
-            </div>
-            <div>
-              <p className="text-[9px] tracking-wider uppercase font-bold text-rosevia-clay/60">Total Products</p>
-              <p className={`text-lg font-bold ${currentTheme.gold} leading-none mt-0.5`}>{dashboardMetrics.total}</p>
-            </div>
-          </div>
-          <div className={`${currentTheme.card} p-4 rounded-xl flex items-center gap-3 group hover:shadow-md transition-all duration-300`}>
-            <div className="w-10 h-10 rounded-xl bg-orange-500/15 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-              <TrendingDown size={18} className="text-orange-400" />
-            </div>
-            <div>
-              <p className="text-[9px] tracking-wider uppercase font-bold text-rosevia-clay/60">Low Stock</p>
-              <p className={`text-lg font-bold leading-none mt-0.5 ${dashboardMetrics.lowStock > 0 ? "text-orange-400" : currentTheme.gold.replace("text-", "text-")}`}>{dashboardMetrics.lowStock}</p>
-            </div>
-          </div>
-          <div className={`${currentTheme.card} p-4 rounded-xl flex items-center gap-3 group hover:shadow-md transition-all duration-300`}>
-            <div className="w-10 h-10 rounded-xl bg-rose-500/15 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-              <Clock size={18} className="text-rose-400" />
-            </div>
-            <div>
-              <p className="text-[9px] tracking-wider uppercase font-bold text-rosevia-clay/60">Expiring Soon</p>
-              <p className={`text-lg font-bold leading-none mt-0.5 ${dashboardMetrics.expiringSoon > 0 ? "text-rose-400" : currentTheme.gold.replace("text-", "text-")}`}>{dashboardMetrics.expiringSoon}</p>
-            </div>
-          </div>
-          <div className={`${currentTheme.card} p-4 rounded-xl flex items-center gap-3 group hover:shadow-md transition-all duration-300`}>
-            <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-              <ShieldAlert size={18} className="text-amber-400" />
-            </div>
-            <div>
-              <p className="text-[9px] tracking-wider uppercase font-bold text-rosevia-clay/60">Conflicts</p>
-              <p className={`text-lg font-bold leading-none mt-0.5 ${dashboardMetrics.totalConflicts > 0 ? "text-amber-400" : currentTheme.gold.replace("text-", "text-")}`}>{dashboardMetrics.totalConflicts}</p>
-            </div>
-          </div>
-        </div>
-
         {/* === NEW: Search & Filter Bar === */}
         <div className={`${currentTheme.card} p-4 space-y-3 shadow-sm`}>
           <div className="flex gap-2">
