@@ -28,17 +28,26 @@ import {
   Calendar,
   Play,
   Pause,
-  RotateCcw,
-  Loader2
+  RotateCcw
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import dynamic from "next/dynamic";
 import Interactive3DCard from "@/components/Interactive3DCard";
+import { useRouter } from "next/navigation";
 import { fetchDbState, postDbAction } from "@/lib/dbSync";
 
 const ThreeSkinSphere = dynamic(() => import("@/components/ThreeSkinSphere"), {
   ssr: false,
 });
+
+function LoaderSpinner() {
+  return (
+    <div className="flex flex-col items-center space-y-3">
+      <RefreshCw size={36} className="text-rosevia-gold animate-spin" />
+      <p className="text-xs tracking-widest text-rosevia-clay uppercase">Loading Path...</p>
+    </div>
+  );
+}
 
 interface Routine {
   routineName: string;
@@ -110,7 +119,7 @@ export default function Home() {
     city: "Local Location"
   });
   const [loadingWeather, setLoadingWeather] = useState<boolean>(false);
-  const [climateSim, setClimateSim] = useState<string>("Seoul"); 
+  const [climateSim, setClimateSim] = useState<string>("local"); 
   
   // Tablets & Supplements state
   const [tablets, setTablets] = useState<any[]>([]);
@@ -374,7 +383,7 @@ export default function Home() {
   if (!mounted) {
     return (
       <div className="min-h-screen bg-rosevia-cream flex items-center justify-center">
-        <Loader2 />
+        <LoaderSpinner />
       </div>
     );
   }
@@ -738,7 +747,20 @@ export default function Home() {
                 <MapPin size={16} className="text-rosevia-clay" />
                 <h3 className="text-xs font-bold tracking-widest uppercase text-rosevia-clay">Climate Intelligence</h3>
               </div>
-              <div className="flex bg-rosevia-cream/60 rounded-lg p-0.5 border border-rosevia-rose/30 self-start">
+              <div className="flex bg-rosevia-cream/60 rounded-lg p-0.5 border border-rosevia-rose/30 self-start flex-wrap gap-0.5">
+                <button
+                  onClick={() => {
+                    setClimateSim("local");
+                    if (profile) fetchRealTimeWeather(profile);
+                  }}
+                  className={`text-[9px] font-bold px-2.5 py-1 rounded transition-all duration-300 cursor-pointer flex items-center gap-1 ${
+                    climateSim === "local" 
+                      ? "bg-rosevia-gold text-rosevia-cream shadow-xs"
+                      : "text-rosevia-clay/70 hover:text-rosevia-clay"
+                  }`}
+                >
+                  <MapPin size={9} /> My Location
+                </button>
                 {["Seoul", "Miami", "Sydney", "London"].map((city) => (
                   <button
                     key={city}
@@ -882,6 +904,7 @@ export default function Home() {
               </div>
             )}
             </div>
+        </div>
 
         {/* Dynamic Skincare Timer & Supplement Tracker */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
@@ -1222,15 +1245,6 @@ export default function Home() {
         </button>
       </nav>
 
-    </div>
-  );
-}
-
-function LoaderSpinner() {
-  return (
-    <div className="flex flex-col items-center space-y-3">
-      <RefreshCw size={36} className="text-rosevia-gold animate-spin" />
-      <p className="text-xs tracking-widest text-rosevia-clay uppercase">Loading Path...</p>
     </div>
   );
 }
