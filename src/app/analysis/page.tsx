@@ -46,9 +46,9 @@ export default function SkinAnalysis() {
         return {
           bg: "bg-rosevia-plum text-rosevia-charcoal",
           card: "bg-rosevia-rose-dark/85 border border-rosevia-rose-light/40 shadow-[0_4px_30px_rgba(232,193,200,0.12)]",
-          accent: "text-rosevia-rose-light",
-          gold: "text-rosevia-rosegold",
-          button: "bg-rosevia-rose-light text-rosevia-cream hover:bg-rosevia-rosegold",
+          accent: "text-rosevia-rosegold",
+          gold: "text-rosevia-rose-light",
+          button: "bg-rosevia-rose-light text-rosevia-plum hover:bg-rosevia-rosegold hover:text-rosevia-plum",
           glow: "border-rosevia-rosegold/75 shadow-[0_0_20px_rgba(232,193,200,0.2)]"
         };
       case "Polished Obsidian":
@@ -133,10 +133,10 @@ export default function SkinAnalysis() {
 
   const metricsData = report?.metrics
     ? [
-        { label: "Barrier Calmness (Redness)", score: report.metrics.redness, color: "bg-rosevia-rose" },
-        { label: "Epidermal Texture (Smoothness)", score: report.metrics.smoothness, color: "bg-rosevia-gold" },
+        { label: "Barrier Calmness (Redness)", score: report.metrics.redness, color: theme === "Rose Quartz Luxury" ? "bg-rosevia-rose-light" : "bg-rosevia-rose" },
+        { label: "Epidermal Texture (Smoothness)", score: report.metrics.smoothness, color: theme === "Rose Quartz Luxury" ? "bg-rosevia-rosegold" : "bg-rosevia-gold" },
         { label: "Pore Congestion (Sebum Balance)", score: report.metrics.sebum, color: "bg-rosevia-clay" },
-        { label: "Deep Cellular Hydration", score: report.metrics.hydration, color: "bg-rosevia-sage" },
+        { label: "Deep Cellular Hydration", score: report.metrics.hydration, color: theme === "Rose Quartz Luxury" ? "bg-rosevia-plum-glow" : "bg-rosevia-sage" },
         { label: "Elasticity (Fine Lines)", score: report.metrics.elasticity, color: "bg-rosevia-terracotta" }
       ]
     : [];
@@ -157,7 +157,11 @@ export default function SkinAnalysis() {
           
           <button 
             onClick={() => navigateTo("/")}
-            className={`w-10 h-10 rounded-full bg-gradient-to-tr from-rosevia-gold/30 to-rosevia-rose/30 border border-rosevia-gold/50 flex items-center justify-center font-serif text-xs font-bold ${currentTheme.gold} hover:shadow-lg transition-all shrink-0 cursor-pointer`}
+            className={`w-10 h-10 rounded-full bg-gradient-to-tr ${
+              theme === "Rose Quartz Luxury" 
+                ? "from-rosevia-rosegold/30 to-rosevia-rose-light/30 border-rosevia-rosegold/50" 
+                : "from-rosevia-gold/30 to-rosevia-rose/30 border-rosevia-gold/50"
+            } border flex items-center justify-center font-serif text-xs font-bold ${currentTheme.gold} hover:shadow-lg transition-all shrink-0 cursor-pointer`}
           >
             RN
           </button>
@@ -170,36 +174,50 @@ export default function SkinAnalysis() {
           <div className={`md:col-span-5 ${currentTheme.card} p-5 space-y-4 flex flex-col items-center shadow-sm`}>
             <h3 className={`text-xs font-semibold tracking-widest uppercase ${currentTheme.accent} self-start`}>Selfie Capture</h3>
             
-            <div className="relative w-full aspect-[3/4] max-w-[280px] bg-rosevia-sand border border-rosevia-rose/25 rounded-2xl overflow-hidden flex flex-col items-center justify-center text-center shadow-inner group">
+            <div className={`relative w-full aspect-[3/4] max-w-[280px] ${
+              theme === "Rose Quartz Luxury" ? "bg-rosevia-rose-dark border-rosevia-rose-light/25" : "bg-rosevia-sand border-rosevia-rose/25"
+            } border rounded-2xl overflow-hidden flex flex-col items-center justify-center text-center shadow-inner group`}>
               {image ? (
                 <>
                   <img src={image} alt="Selfie upload" className="w-full h-full object-cover" />
                   
                   {scanning && (
-                    <div className="absolute left-0 w-full h-[3px] bg-rosevia-gold/90 shadow-[0_0_12px_#D4AF37] animate-scan z-20" />
+                    <div className={`absolute left-0 w-full h-[3px] ${
+                      theme === "Rose Quartz Luxury" ? "bg-rosevia-rose-light/95 shadow-[0_0_12px_#E07A9A]" : "bg-rosevia-gold/90 shadow-[0_0_12px_#D4AF37]"
+                    } animate-scan z-20`} />
                   )}
 
                   {/* Pulsing zone indicators */}
                   {scanning && (
                     <>
-                      <div className="absolute top-[20%] left-1/2 -translate-x-1/2 w-8 h-8 rounded-full border border-rosevia-gold/80 animate-pulse-ring flex items-center justify-center">
-                        <div className="w-2 h-2 rounded-full bg-rosevia-gold" />
+                      <div className={`absolute top-[20%] left-1/2 -translate-x-1/2 w-8 h-8 rounded-full border ${
+                        theme === "Rose Quartz Luxury" ? "border-rosevia-rose-light/80" : "border-rosevia-gold/80"
+                      } animate-pulse-ring flex items-center justify-center`}>
+                        <div className={`w-2 h-2 rounded-full ${theme === "Rose Quartz Luxury" ? "bg-rosevia-rose-light" : "bg-rosevia-gold"}`} />
                       </div>
-                      <div className="absolute top-[48%] left-[28%] w-8 h-8 rounded-full border border-rosevia-gold/80 animate-pulse-ring flex items-center justify-center">
-                        <div className="w-2 h-2 rounded-full bg-rosevia-gold" />
+                      <div className={`absolute top-[48%] left-[28%] w-8 h-8 rounded-full border ${
+                        theme === "Rose Quartz Luxury" ? "border-rosevia-rose-light/80" : "border-rosevia-gold/80"
+                      } animate-pulse-ring flex items-center justify-center`}>
+                        <div className={`w-2 h-2 rounded-full ${theme === "Rose Quartz Luxury" ? "bg-rosevia-rose-light" : "bg-rosevia-gold"}`} />
                       </div>
-                      <div className="absolute top-[48%] right-[28%] w-8 h-8 rounded-full border border-rosevia-gold/80 animate-pulse-ring flex items-center justify-center">
-                        <div className="w-2 h-2 rounded-full bg-rosevia-gold" />
+                      <div className={`absolute top-[48%] right-[28%] w-8 h-8 rounded-full border ${
+                        theme === "Rose Quartz Luxury" ? "border-rosevia-rose-light/80" : "border-rosevia-gold/80"
+                      } animate-pulse-ring flex items-center justify-center`}>
+                        <div className={`w-2 h-2 rounded-full ${theme === "Rose Quartz Luxury" ? "bg-rosevia-rose-light" : "bg-rosevia-gold"}`} />
                       </div>
-                      <div className="absolute bottom-[22%] left-1/2 -translate-x-1/2 w-8 h-8 rounded-full border border-rosevia-gold/80 animate-pulse-ring flex items-center justify-center">
-                        <div className="w-2 h-2 rounded-full bg-rosevia-gold" />
+                      <div className={`absolute bottom-[22%] left-1/2 -translate-x-1/2 w-8 h-8 rounded-full border ${
+                        theme === "Rose Quartz Luxury" ? "border-rosevia-rose-light/80" : "border-rosevia-gold/80"
+                      } animate-pulse-ring flex items-center justify-center`}>
+                        <div className={`w-2 h-2 rounded-full ${theme === "Rose Quartz Luxury" ? "bg-rosevia-rose-light" : "bg-rosevia-gold"}`} />
                       </div>
                     </>
                   )}
                 </>
               ) : (
-                <div className="w-full h-full p-6 flex flex-col items-center justify-center space-y-4 bg-gradient-to-b from-[#111C18]/60 to-[#060D0B] relative">
-                  <svg className="w-32 h-32 text-rosevia-gold/75 animate-pulse" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.2">
+                <div className={`w-full h-full p-6 flex flex-col items-center justify-center space-y-4 bg-gradient-to-b ${
+                  theme === "Rose Quartz Luxury" ? "from-rosevia-rose-dark/65 to-rosevia-plum" : "from-[#111C18]/60 to-[#060D0B]"
+                } relative`}>
+                  <svg className={`w-32 h-32 ${theme === "Rose Quartz Luxury" ? "text-rosevia-rose-light/75" : "text-rosevia-gold/75"} animate-pulse`} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.2">
                     <path d="M50,15 C28,15 28,50 28,68 C28,82 38,88 50,88 C62,88 72,82 72,68 C72,50 72,15 50,15 Z" strokeDasharray="3 3" />
                     <ellipse cx="40" cy="46" rx="4" ry="2" />
                     <ellipse cx="60" cy="46" rx="4" ry="2" />
@@ -222,7 +240,7 @@ export default function SkinAnalysis() {
 
             {/* Calibration Text */}
             {scanning && (
-              <div className="bg-rosevia-cream border border-rosevia-rose/25 rounded-xl p-3 w-full text-center shadow-xs">
+              <div className={`border ${theme === "Rose Quartz Luxury" ? "bg-rosevia-rose-dark border-rosevia-rose-light/25" : "bg-rosevia-cream border-rosevia-rose/25"} rounded-xl p-3 w-full text-center shadow-xs`}>
                 <p className={`text-xs font-bold ${currentTheme.accent} flex items-center justify-center animate-pulse`}>
                   <Activity size={12} className={`mr-1.5 animate-spin ${currentTheme.gold}`} />
                   {scanStep === 1 && "Calibrating T-Zone Sebum Lipids..."}
@@ -234,7 +252,11 @@ export default function SkinAnalysis() {
 
             {/* Controls */}
             <div className="w-full flex flex-col space-y-2 pt-2">
-              <label className={`w-full py-3.5 rounded-xl border border-dashed border-rosevia-rose bg-rosevia-cream/65 hover:bg-rosevia-rose/10 transition-all text-xs tracking-widest font-bold uppercase ${currentTheme.accent} text-center cursor-pointer block shadow-xs`}>
+              <label className={`w-full py-3.5 rounded-xl border border-dashed ${
+                theme === "Rose Quartz Luxury" 
+                  ? "border-rosevia-rose-light bg-rosevia-rose-dark/65 hover:bg-rosevia-rose-light/10" 
+                  : "border-rosevia-rose bg-rosevia-cream/65 hover:bg-rosevia-rose/10"
+              } transition-all text-xs tracking-widest font-bold uppercase ${currentTheme.accent} text-center cursor-pointer block shadow-xs`}>
                 <input 
                   type="file" 
                   accept="image/*" 
@@ -263,7 +285,7 @@ export default function SkinAnalysis() {
                 <div className={`${currentTheme.card} p-6 flex items-center gap-6 shadow-sm`}>
                   <div className="relative shrink-0 w-24 h-24 flex items-center justify-center">
                     <svg className="absolute w-full h-full transform -rotate-90">
-                      <circle cx="48" cy="48" r="40" stroke="#111C18" strokeWidth="4.5" fill="transparent" opacity="0.3" />
+                      <circle cx="48" cy="48" r="40" stroke={theme === "Rose Quartz Luxury" ? "#251117" : "#111C18"} strokeWidth="4.5" fill="transparent" opacity="0.3" />
                       <circle 
                         cx="48" 
                         cy="48" 
@@ -278,8 +300,8 @@ export default function SkinAnalysis() {
                       />
                       <defs>
                         <linearGradient id="skinIndexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stopColor="#D4AF37" />
-                          <stop offset="100%" stopColor="#688A7D" />
+                          <stop offset="0%" stopColor={theme === "Rose Quartz Luxury" ? "#E8C1C8" : "#D4AF37"} />
+                          <stop offset="100%" stopColor={theme === "Rose Quartz Luxury" ? "#E07A9A" : "#688A7D"} />
                         </linearGradient>
                       </defs>
                     </svg>
@@ -336,7 +358,7 @@ export default function SkinAnalysis() {
             ) : (
               /* Instructions Placeholder when not analyzed */
               <div className={`${currentTheme.card} p-8 text-center flex flex-col items-center justify-center space-y-4 aspect-[4/3] md:aspect-[4/2.5] shadow-sm`}>
-                <div className="w-12 h-12 rounded-full bg-rosevia-rose/25 flex items-center justify-center border border-rosevia-gold/30">
+                <div className={`w-12 h-12 rounded-full ${theme === "Rose Quartz Luxury" ? "bg-rosevia-rose-light/25 border-rosevia-rosegold/30" : "bg-rosevia-rose/25 border-rosevia-gold/30"} flex items-center justify-center border`}>
                   <Camera size={22} className={`${currentTheme.gold} animate-pulse`} />
                 </div>
                 <h3 className={`text-sm font-serif font-bold ${currentTheme.gold} uppercase tracking-wide`}>Provide a photo to activate diagnostics</h3>
@@ -352,45 +374,49 @@ export default function SkinAnalysis() {
       </div>
 
       {/* FLOATING BOTTOM PREMIUM NAVIGATION DOCK */}
-      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md glass-panel py-3.5 px-6 rounded-2xl flex justify-between items-center shadow-lg border border-rosevia-rose/40 z-50">
+      <nav className={`fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md py-3.5 px-6 rounded-2xl flex justify-between items-center shadow-lg backdrop-blur-md z-50 ${
+        theme === "Rose Quartz Luxury"
+          ? "bg-rosevia-rose-dark/90 border border-rosevia-rose-light/30 text-rosevia-charcoal"
+          : "bg-[#060D0B]/88 border border-rosevia-gold/20 text-rosevia-charcoal"
+      }`}>
         <button 
           onClick={() => navigateTo("/")}
-          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
+          className={`flex flex-col items-center ${theme === "Rose Quartz Luxury" ? "text-rosevia-rosegold/60 hover:text-rosevia-rosegold" : "text-rosevia-clay hover:text-rosevia-gold"} shrink-0 cursor-pointer`}
         >
           <Layers size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Home</span>
         </button>
         <button 
           onClick={() => navigateTo("/analysis")}
-          className="flex flex-col items-center text-rosevia-gold shrink-0 cursor-pointer"
+          className={`flex flex-col items-center ${currentTheme.gold} shrink-0 cursor-pointer`}
         >
           <Activity size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Scan</span>
         </button>
         <button 
           onClick={() => navigateTo("/cabinet")}
-          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
+          className={`flex flex-col items-center ${theme === "Rose Quartz Luxury" ? "text-rosevia-rosegold/60 hover:text-rosevia-rosegold" : "text-rosevia-clay hover:text-rosevia-gold"} shrink-0 cursor-pointer`}
         >
           <FolderHeart size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Cabinet</span>
         </button>
         <button 
           onClick={() => navigateTo("/checker")}
-          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
+          className={`flex flex-col items-center ${theme === "Rose Quartz Luxury" ? "text-rosevia-rosegold/60 hover:text-rosevia-rosegold" : "text-rosevia-clay hover:text-rosevia-gold"} shrink-0 cursor-pointer`}
         >
           <AlertCircle size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Checker</span>
         </button>
         <button 
           onClick={() => navigateTo("/journal")}
-          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
+          className={`flex flex-col items-center ${theme === "Rose Quartz Luxury" ? "text-rosevia-rosegold/60 hover:text-rosevia-rosegold" : "text-rosevia-clay hover:text-rosevia-gold"} shrink-0 cursor-pointer`}
         >
           <BookOpen size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Diary</span>
         </button>
         <button 
           onClick={() => navigateTo("/settings")}
-          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer animate-none"
+          className={`flex flex-col items-center ${theme === "Rose Quartz Luxury" ? "text-rosevia-rosegold/60 hover:text-rosevia-rosegold" : "text-rosevia-clay hover:text-rosevia-gold"} shrink-0 cursor-pointer`}
         >
           <Settings size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Settings</span>
