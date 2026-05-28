@@ -17,7 +17,9 @@ import {
   Loader2,
   Settings,
   Calendar,
-  X
+  X,
+  Pill,
+  Minus
 } from "lucide-react";
 import { fetchDbState, postDbAction } from "@/lib/dbSync";
 
@@ -32,6 +34,16 @@ interface Product {
   totalTablets?: number;
   remainingTablets?: number;
 }
+
+/* Known actives that conflict when layered together */
+const CONFLICT_PAIRS: [string[], string[], string][] = [
+  [["retinol", "retinoid", "tretinoin"], ["vitamin c", "ascorbic acid", "l-ascorbic"], "Retinol + Vitamin C can cause irritation when layered together. Use AM/PM split."],
+  [["retinol", "retinoid", "tretinoin"], ["aha", "glycolic", "lactic"], "Retinol + AHA can over-exfoliate. Alternate nights."],
+  [["retinol", "retinoid", "tretinoin"], ["bha", "salicylic"], "Retinol + BHA can damage the moisture barrier. Use on separate nights."],
+  [["retinol", "retinoid", "tretinoin"], ["benzoyl peroxide"], "Retinol + Benzoyl Peroxide cancel each other out. Use AM/PM split."],
+  [["niacinamide"], ["vitamin c", "ascorbic acid"], "Niacinamide + Vitamin C at low pH may cause flushing. Use a buffered form."],
+  [["aha", "glycolic", "lactic"], ["bha", "salicylic"], "AHA + BHA together can over-strip. Alternate usage days."],
+];
 
 export default function SmartCabinet() {
   const [cabinet, setCabinet] = useState<Product[]>([]);
@@ -130,7 +142,6 @@ export default function SmartCabinet() {
     setCabinet(updatedCabinet);
     localStorage.setItem("rosevia_cabinet", JSON.stringify(updatedCabinet));
   };
-
 
   const handleScanProduct = async () => {
     if (!newProductName.trim()) return;
@@ -349,14 +360,48 @@ export default function SmartCabinet() {
         warnings.push({ type: "expired", text: `"${p.name}" has expired! Avoid applying oxidized actives to your skin.` });
       }
 
-      if (p.fluidLevel <= 20 && p.fluidLevel > 0) {
-        warnings.push({ type: "low", text: `"${p.name}" is running low (${p.fluidLevel}% left). Reorder warning triggered.` });
+      if (p.category.toLowerCase() === "tablet") {
+        if ((p.remainingTablets || 0) <= 5 && (p.remainingTablets || 0) > 0) {
+          warnings.push({ type: "low", text: `"${p.name}" — only ${p.remainingTablets} tablets remaining. Reorder soon.` });
+        }
+      } else {
+        if (p.fluidLevel <= 20 && p.fluidLevel > 0) {
+          warnings.push({ type: "low", text: `"${p.name}" is running low (${p.fluidLevel}% left). Reorder warning triggered.` });
+        }
       }
     }
     return warnings;
   };
 
+  /* Cross-product ingredient conflict detection */
+  const getConflictsForProduct = (product: Product): string[] => {
+    const conflicts: string[] = [];
+    const productIngs = product.ingredients.map(i => i.toLowerCase());
+    
+    for (const other of cabinet) {
+      if (other.id === product.id) continue;
+      const otherIngs = other.ingredients.map(i => i.toLowerCase());
+      
+      for (const [groupA, groupB, msg] of CONFLICT_PAIRS) {
+        const prodHasA = productIngs.some(i => groupA.some(a => i.includes(a)));
+        const prodHasB = productIngs.some(i => groupB.some(b => i.includes(b)));
+        const otherHasA = otherIngs.some(i => groupA.some(a => i.includes(a)));
+        const otherHasB = otherIngs.some(i => groupB.some(b => i.includes(b)));
+        
+        if ((prodHasA && otherHasB) || (prodHasB && otherHasA)) {
+          const conflictMsg = `⚠️ ${product.name} × ${other.name}: ${msg}`;
+          if (!conflicts.includes(conflictMsg)) {
+            conflicts.push(conflictMsg);
+          }
+        }
+      }
+    }
+    return conflicts;
+  };
+
   const cabinetWarnings = checkWarnings();
+
+  /* --- SVG Vial Renderers --- */
 
   const RenderSkincareVial = ({ category, level }: { category: string; level: number }) => {
     const fillHeight = 36 - (36 * level) / 100;
@@ -367,6 +412,7 @@ export default function SmartCabinet() {
     if (category.toLowerCase().includes("serum")) fluidColor = "#688A7D"; 
     if (category.toLowerCase().includes("cleans")) fluidColor = "#93A39A"; 
     if (category.toLowerCase().includes("moist") || category.toLowerCase().includes("cream")) fluidColor = "#C5A880";
+    if (category.toLowerCase().includes("mask")) fluidColor = "#A89CCC";
 
     if (category.toLowerCase().includes("serum")) {
       return (
@@ -398,6 +444,19 @@ export default function SmartCabinet() {
           </clipPath>
         </svg>
       );
+    } else if (category.toLowerCase().includes("mask")) {
+      /* Sheet mask packet SVG */
+      return (
+        <svg className="w-14 h-16 text-rosevia-clay shrink-0 drop-shadow-sm" viewBox="0 0 44 55" fill="none">
+          <rect x="4" y="5" width="36" height="45" rx="4" fill="rgba(168, 156, 204, 0.1)" stroke="#A89CCC" strokeWidth="1.5" />
+          <path d="M14,14 L30,14 L28,20 L22,24 L16,20 Z" fill="#A89CCC" opacity="0.35" />
+          <circle cx="18" cy="17" r="1" fill="#A89CCC" opacity="0.7" />
+          <circle cx="26" cy="17" r="1" fill="#A89CCC" opacity="0.7" />
+          <path d="M20,22 Q22,23 24,22" stroke="#A89CCC" strokeWidth="0.8" fill="none" opacity="0.5" />
+          <line x1="10" y1="32" x2="34" y2="32" stroke="#A89CCC" strokeWidth="0.5" strokeDasharray="2 2" opacity="0.5" />
+          <text x="22" y="42" textAnchor="middle" fill="#A89CCC" fontSize="5" fontWeight="bold" opacity="0.7">MASK</text>
+        </svg>
+      );
     } else {
       return (
         <svg className="w-12 h-20 text-rosevia-clay shrink-0 drop-shadow-sm" viewBox="0 0 34 70" fill="none">
@@ -411,6 +470,51 @@ export default function SmartCabinet() {
           </clipPath>
         </svg>
       );
+    }
+  };
+
+  /* Tablet "Diffo" UI — Blister Pack Pill Grid */
+  const RenderTabletBlister = ({ total, remaining }: { total: number; remaining: number }) => {
+    const pills = Array.from({ length: Math.min(total, 30) });
+    const taken = total - remaining;
+    return (
+      <div className="flex flex-wrap gap-[3px] max-w-[140px]">
+        {pills.map((_, i) => (
+          <div
+            key={i}
+            className={`w-[14px] h-[14px] rounded-full border transition-all duration-300 ${
+              i < taken
+                ? "bg-rosevia-sand/40 border-rosevia-rose/20 shadow-inner"
+                : "bg-gradient-to-br from-rosevia-gold/60 to-rosevia-rose/40 border-rosevia-gold/50 shadow-sm"
+            }`}
+            title={i < taken ? "Taken" : "Remaining"}
+          />
+        ))}
+      </div>
+    );
+  };
+
+  /* Shelf categories with display order */
+  const SHELF_TIERS = ["Cleanser", "Toner", "Serum", "Moisturizer", "Tablet", "Mask"];
+
+  const getShelfItems = (cat: string): Product[] => {
+    const catLower = cat.toLowerCase();
+    return cabinet.filter((p) => {
+      const pCat = p.category.toLowerCase();
+      if (catLower === "moisturizer") return pCat === "moisturizer" || pCat === "spf" || pCat === "cream";
+      return pCat === catLower;
+    });
+  };
+
+  const getShelfLabel = (cat: string): string => {
+    switch (cat) {
+      case "Cleanser": return "Cleansers & Barriers";
+      case "Toner": return "Toners & Essences";
+      case "Serum": return "Serums & Treatments";
+      case "Moisturizer": return "Moisturizers & SPF";
+      case "Tablet": return "Supplements & Tablets";
+      case "Mask": return "Sheet & Clay Masks";
+      default: return cat;
     }
   };
 
@@ -472,7 +576,7 @@ export default function SmartCabinet() {
             <h3 className={`text-xs font-semibold tracking-widest uppercase ${currentTheme.accent}`}>Shelf Scanner Simulator</h3>
           </div>
           <p className={`text-xs ${currentTheme.accent} opacity-90 leading-relaxed font-medium`}>
-            Type any brand product (e.g. <i>"Paula's Choice BHA"</i> or <i>"CeraVe Hydrating Cleanser"</i>) to simulate photo scanner extraction. Our AI extracts branded naming and full active ingredients.
+            Type any brand product (e.g. <i>&quot;Paula&apos;s Choice BHA&quot;</i>, <i>&quot;Vitamin D3 Tablets&quot;</i>, or <i>&quot;Innisfree Clay Mask&quot;</i>) to simulate photo scanner extraction. Our AI extracts branded naming and full active ingredients.
           </p>
 
           <div className="flex gap-2">
@@ -498,107 +602,165 @@ export default function SmartCabinet() {
         <div className={`space-y-8 bg-gradient-to-b ${currentTheme.shelf} rounded-3xl p-6 relative overflow-hidden shadow-md`}>
           <div className="absolute top-0 right-0 w-[50%] h-[150%] bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none transform rotate-12" />
 
-          {["Cleanser", "Toner", "Serum", "Moisturizer"].map((cat) => {
-            const items = cabinet.filter((p) => p.category === cat || (cat === "Moisturizer" && p.category === "SPF"));
+          {SHELF_TIERS.map((cat) => {
+            const items = getShelfItems(cat);
+            const isTabletTier = cat === "Tablet";
             
             return (
               <div key={cat} className="space-y-4 relative">
                 <div className="flex justify-between items-center border-b border-rosevia-rose/25 pb-1">
-                  <h4 className={`text-[10px] tracking-widest font-bold uppercase ${currentTheme.gold}`}>{cat}s & Barriers</h4>
-                  <span className={`text-[9px] font-bold ${currentTheme.accent} uppercase`}>{items.length} Bottle{items.length !== 1 && "s"}</span>
+                  <h4 className={`text-[10px] tracking-widest font-bold uppercase ${currentTheme.gold}`}>{getShelfLabel(cat)}</h4>
+                  <span className={`text-[9px] font-bold ${currentTheme.accent} uppercase`}>
+                    {items.length} {isTabletTier ? "Bottle" : "Item"}{items.length !== 1 && "s"}
+                  </span>
                 </div>
 
                 {items.length === 0 ? (
                   <p className={`text-[10px] ${currentTheme.accent} opacity-60 italic py-2 pl-2`}>No {cat.toLowerCase()}s on this shelf tier.</p>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pb-2">
-                    {items.map((prod) => (
-                      <div 
-                        key={prod.id} 
-                        className={`bg-rosevia-sand/85 p-4 rounded-xl relative flex flex-col justify-between space-y-3 group border border-rosevia-rose/30 shadow-sm transition-all duration-300 hover:border-rosevia-gold/50`}
-                      >
-                        {/* Expiry Badge */}
-                        <div className="absolute top-3 right-3 flex items-center space-x-1 text-[8px] font-bold bg-rosevia-cream border border-rosevia-rose/40 px-1.5 py-0.5 rounded text-rosevia-gold">
-                          <Clock size={8} /> <span>{prod.pao} PAO</span>
-                        </div>
-
-                        {/* Top layout */}
-                        <div className="flex items-center space-x-3">
-                          <RenderSkincareVial category={prod.category} level={prod.fluidLevel} />
-                          <div className="flex-1 min-w-0">
-                            <h5 className="text-[11px] font-bold text-rosevia-charcoal leading-tight pr-6 truncate">
-                              {prod.name}
-                            </h5>
-                            <span className="text-[8px] text-rosevia-gold block mt-1 uppercase font-bold tracking-wider">
-                              {prod.category}
-                            </span>
+                    {items.map((prod) => {
+                      const prodConflicts = getConflictsForProduct(prod);
+                      const isTablet = prod.category.toLowerCase() === "tablet";
+                      
+                      return (
+                        <div 
+                          key={prod.id} 
+                          className={`bg-rosevia-sand/85 p-4 rounded-xl relative flex flex-col justify-between space-y-3 group border border-rosevia-rose/30 shadow-sm transition-all duration-300 hover:border-rosevia-gold/50`}
+                        >
+                          {/* Expiry Badge */}
+                          <div className="absolute top-3 right-3 flex items-center space-x-1 text-[8px] font-bold bg-rosevia-cream border border-rosevia-rose/40 px-1.5 py-0.5 rounded text-rosevia-gold">
+                            <Clock size={8} /> <span>{prod.pao} PAO</span>
                           </div>
-                        </div>
 
-                        {/* Ingredients Tags */}
-                        <div className="flex flex-wrap gap-1">
-                          {prod.ingredients.slice(0, 3).map((ing, i) => (
-                            <span key={i} className="text-[8px] bg-rosevia-cream border border-rosevia-rose/25 text-rosevia-clay px-1.5 py-0.2 rounded font-medium">
-                              {ing}
-                            </span>
-                          ))}
-                          {prod.ingredients.length > 3 && (
-                            <span className="text-[8px] text-rosevia-gold font-bold self-center ml-0.5">+{prod.ingredients.length - 3}</span>
+                          {/* Conflict Warning Badge */}
+                          {prodConflicts.length > 0 && (
+                            <div className="absolute top-3 left-3">
+                              <div className="relative group/conflict">
+                                <div className="w-5 h-5 rounded-full bg-amber-500/90 flex items-center justify-center animate-pulse shadow-md cursor-help">
+                                  <AlertTriangle size={10} className="text-white stroke-[3]" />
+                                </div>
+                                <div className="hidden group-hover/conflict:block absolute left-0 top-6 z-30 w-56 bg-rosevia-cream border border-amber-500/40 rounded-xl p-3 shadow-lg">
+                                  {prodConflicts.map((c, ci) => (
+                                    <p key={ci} className="text-[9px] text-rosevia-clay font-semibold leading-relaxed mb-1.5 last:mb-0">{c}</p>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
                           )}
-                        </div>
 
-                        {/* Fluid progress */}
-                        <div className="space-y-1.5 border-t border-rosevia-rose/15 pt-2">
-                          <div className="flex justify-between items-center text-[9px] font-bold text-rosevia-clay">
-                            <span>Remaining Capacity</span>
-                            <span className={prod.fluidLevel <= 20 ? "text-rosevia-terracotta" : ""}>{prod.fluidLevel}%</span>
-                          </div>
-                          
-                          <div className="w-full h-1.5 bg-rosevia-cream border border-rosevia-rose/20 rounded-full overflow-hidden shadow-inner">
-                            <div 
-                              className={`h-full rounded-full transition-all duration-300 ${
-                                prod.fluidLevel <= 20 ? "bg-rosevia-terracotta" : "bg-rosevia-gold"
-                              }`} 
-                              style={{ width: `${prod.fluidLevel}%` }} 
-                            />
+                          {/* Top layout */}
+                          <div className="flex items-center space-x-3">
+                            {isTablet ? (
+                              <div className="shrink-0">
+                                <RenderTabletBlister total={prod.totalTablets || 30} remaining={prod.remainingTablets || 0} />
+                              </div>
+                            ) : (
+                              <RenderSkincareVial category={prod.category} level={prod.fluidLevel} />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <h5 className="text-[11px] font-bold text-rosevia-charcoal leading-tight pr-6 truncate">
+                                {prod.name}
+                              </h5>
+                              <span className="text-[8px] text-rosevia-gold block mt-1 uppercase font-bold tracking-wider">
+                                {prod.category}
+                              </span>
+                              {isTablet && (
+                                <span className="text-[9px] text-rosevia-clay font-bold block mt-1">
+                                  {prod.remainingTablets || 0} / {prod.totalTablets || 30} tablets remaining
+                                </span>
+                              )}
+                            </div>
                           </div>
 
-                          {/* Fluid Level Buttons & Auto-Scheduler */}
-                          <div className="flex justify-between items-center pt-1.5">
-                            <div className="flex space-x-1 bg-rosevia-cream p-0.5 rounded-md border border-rosevia-rose/25">
-                              <button 
-                                onClick={() => adjustFluidLevel(prod.id, -10)}
-                                className="w-5 h-5 rounded border border-rosevia-rose/20 text-[9px] font-bold flex items-center justify-center bg-rosevia-sand cursor-pointer hover:bg-rosevia-gold/20 transition-all shadow-xs text-rosevia-clay hover:text-rosevia-gold"
+                          {/* Ingredients Tags */}
+                          <div className="flex flex-wrap gap-1">
+                            {prod.ingredients.slice(0, 3).map((ing, i) => (
+                              <span key={i} className="text-[8px] bg-rosevia-cream border border-rosevia-rose/25 text-rosevia-clay px-1.5 py-0.2 rounded font-medium">
+                                {ing}
+                              </span>
+                            ))}
+                            {prod.ingredients.length > 3 && (
+                              <span className="text-[8px] text-rosevia-gold font-bold self-center ml-0.5">+{prod.ingredients.length - 3}</span>
+                            )}
+                          </div>
+
+                          {/* Progress / Tablet Count */}
+                          <div className="space-y-1.5 border-t border-rosevia-rose/15 pt-2">
+                            {isTablet ? (
+                              <>
+                                <div className="flex justify-between items-center text-[9px] font-bold text-rosevia-clay">
+                                  <span>Dosage Tracker</span>
+                                  <span className={(prod.remainingTablets || 0) <= 5 ? "text-rosevia-terracotta" : ""}>
+                                    {prod.remainingTablets || 0} left
+                                  </span>
+                                </div>
+                                <div className="w-full h-1.5 bg-rosevia-cream border border-rosevia-rose/20 rounded-full overflow-hidden shadow-inner">
+                                  <div 
+                                    className={`h-full rounded-full transition-all duration-300 ${
+                                      (prod.remainingTablets || 0) <= 5 ? "bg-rosevia-terracotta" : "bg-rosevia-gold"
+                                    }`} 
+                                    style={{ width: `${((prod.remainingTablets || 0) / (prod.totalTablets || 30)) * 100}%` }} 
+                                  />
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="flex justify-between items-center text-[9px] font-bold text-rosevia-clay">
+                                  <span>Remaining Capacity</span>
+                                  <span className={prod.fluidLevel <= 20 ? "text-rosevia-terracotta" : ""}>{prod.fluidLevel}%</span>
+                                </div>
+                                <div className="w-full h-1.5 bg-rosevia-cream border border-rosevia-rose/20 rounded-full overflow-hidden shadow-inner">
+                                  <div 
+                                    className={`h-full rounded-full transition-all duration-300 ${
+                                      prod.fluidLevel <= 20 ? "bg-rosevia-terracotta" : "bg-rosevia-gold"
+                                    }`} 
+                                    style={{ width: `${prod.fluidLevel}%` }} 
+                                  />
+                                </div>
+                              </>
+                            )}
+
+                            {/* Action Buttons */}
+                            <div className="flex justify-between items-center pt-1.5">
+                              <div className="flex space-x-1 bg-rosevia-cream p-0.5 rounded-md border border-rosevia-rose/25">
+                                <button 
+                                  onClick={() => adjustFluidLevel(prod.id, isTablet ? -1 : -10)}
+                                  className="w-5 h-5 rounded border border-rosevia-rose/20 text-[9px] font-bold flex items-center justify-center bg-rosevia-sand cursor-pointer hover:bg-rosevia-gold/20 transition-all shadow-xs text-rosevia-clay hover:text-rosevia-gold"
+                                  title={isTablet ? "Log 1 dose taken" : "Decrease level"}
+                                >
+                                  <Minus size={9} />
+                                </button>
+                                <button 
+                                  onClick={() => adjustFluidLevel(prod.id, isTablet ? 1 : 10)}
+                                  className="w-5 h-5 rounded border border-rosevia-rose/20 text-[9px] font-bold flex items-center justify-center bg-rosevia-sand cursor-pointer hover:bg-rosevia-gold/20 transition-all shadow-xs text-rosevia-clay hover:text-rosevia-gold"
+                                  title={isTablet ? "Add tablet back" : "Increase level"}
+                                >
+                                  +
+                                </button>
+                              </div>
+
+                              {/* Schedule Button — Opens modal with AI/Manual choice */}
+                              <button
+                                onClick={() => setSchedulingProduct(prod)}
+                                className="px-2 py-1 rounded bg-rosevia-gold/15 border border-rosevia-gold/30 hover:bg-rosevia-gold hover:text-rosevia-cream text-[8px] font-bold tracking-wider uppercase text-rosevia-gold transition-all duration-300 cursor-pointer flex items-center gap-1 shadow-xs"
+                                title="Schedule product into your routine"
                               >
-                                -
+                                <CalendarDays size={9} /> Schedule
                               </button>
+
                               <button 
-                                onClick={() => adjustFluidLevel(prod.id, 10)}
-                                className="w-5 h-5 rounded border border-rosevia-rose/20 text-[9px] font-bold flex items-center justify-center bg-rosevia-sand cursor-pointer hover:bg-rosevia-gold/20 transition-all shadow-xs text-rosevia-clay hover:text-rosevia-gold"
+                                onClick={() => deleteProduct(prod.id)}
+                                className="text-rosevia-clay hover:text-rosevia-terracotta transition-all cursor-pointer p-1"
                               >
-                                +
+                                <Trash2 size={12} />
                               </button>
                             </div>
-
-                            <button
-                              onClick={() => handleScheduleIntoRoutine(prod)}
-                              className="px-2 py-1 rounded bg-rosevia-gold/15 border border-rosevia-gold/30 hover:bg-rosevia-gold hover:text-rosevia-cream text-[8px] font-bold tracking-wider uppercase text-rosevia-gold transition-all duration-300 cursor-pointer flex items-center gap-1 shadow-xs"
-                              title="Reschedule active weekly cycle using AI cosmetology scheduling"
-                            >
-                              <CalendarDays size={9} /> Schedule
-                            </button>
-
-                            <button 
-                              onClick={() => deleteProduct(prod.id)}
-                              className="text-rosevia-clay hover:text-rosevia-terracotta transition-all cursor-pointer p-1"
-                            >
-                              <Trash2 size={12} />
-                            </button>
                           </div>
-                        </div>
 
-                      </div>
-                    ))}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
 
@@ -613,8 +775,115 @@ export default function SmartCabinet() {
 
       </div>
 
-      {/* FLOATING BOTTOM PREMIUM NAVIGATION DOCK */}
-      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md glass-panel py-3.5 px-6 rounded-2xl flex justify-between items-center shadow-lg border border-rosevia-rose/40 z-50">
+      {/* SCHEDULING MODAL — AI Auto or Manual */}
+      {schedulingProduct && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="w-full max-w-md glass-panel p-6 rounded-2xl relative shadow-xl space-y-5">
+            
+            {/* Modal Header */}
+            <div className="flex justify-between items-center border-b border-rosevia-rose/20 pb-3">
+              <div>
+                <h3 className="text-xs font-bold tracking-widest uppercase text-rosevia-charcoal flex items-center gap-1.5">
+                  <CalendarDays size={14} className="text-rosevia-gold" /> Schedule: {schedulingProduct.name}
+                </h3>
+              </div>
+              <button 
+                onClick={() => setSchedulingProduct(null)}
+                className="text-rosevia-clay hover:text-rosevia-gold transition-all cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* AI Auto-Schedule */}
+            <button
+              onClick={() => {
+                handleScheduleIntoRoutine(schedulingProduct);
+                setSchedulingProduct(null);
+              }}
+              className="w-full p-4 rounded-xl bg-gradient-to-r from-rosevia-gold/20 to-rosevia-rose/10 border border-rosevia-gold/40 text-left space-y-1 hover:border-rosevia-gold hover:shadow-md transition-all cursor-pointer group"
+            >
+              <div className="flex items-center gap-2">
+                <Sparkles size={14} className="text-rosevia-gold group-hover:animate-spin" />
+                <span className="text-xs font-bold text-rosevia-charcoal uppercase tracking-wider">AI Auto-Schedule</span>
+              </div>
+              <p className="text-[10px] text-rosevia-clay font-semibold leading-relaxed">
+                Let the AI cosmetologist assign this product to optimal days and AM/PM slots based on its active ingredients and your existing routine.
+              </p>
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-rosevia-rose/25" />
+              <span className="text-[9px] text-rosevia-clay font-bold uppercase tracking-widest">or</span>
+              <div className="flex-1 h-px bg-rosevia-rose/25" />
+            </div>
+
+            {/* Manual Schedule Form */}
+            <form onSubmit={handleSaveManualSchedule} className="space-y-4">
+              <h4 className="text-[10px] font-bold text-rosevia-charcoal uppercase tracking-wider">Manual Schedule</h4>
+              
+              {/* Day Checkboxes */}
+              <div className="space-y-2">
+                <p className="text-[9px] text-rosevia-clay font-bold uppercase">Select Days</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day) => (
+                    <button
+                      key={day}
+                      type="button"
+                      onClick={() => {
+                        if (scheduleDays.includes(day)) {
+                          setScheduleDays(scheduleDays.filter(d => d !== day));
+                        } else {
+                          setScheduleDays([...scheduleDays, day]);
+                        }
+                      }}
+                      className={`px-2.5 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wide border transition-all cursor-pointer ${
+                        scheduleDays.includes(day)
+                          ? "bg-rosevia-gold text-rosevia-cream border-rosevia-gold shadow-sm"
+                          : "bg-rosevia-cream border-rosevia-rose/30 text-rosevia-clay hover:border-rosevia-gold/50"
+                      }`}
+                    >
+                      {day.substring(0, 3)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Slot Selection */}
+              <div className="space-y-2">
+                <p className="text-[9px] text-rosevia-clay font-bold uppercase">Select Slot</p>
+                <div className="flex gap-2">
+                  {(["am", "pm", "both"] as const).map((slot) => (
+                    <button
+                      key={slot}
+                      type="button"
+                      onClick={() => setScheduleSlot(slot)}
+                      className={`flex-1 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all cursor-pointer ${
+                        scheduleSlot === slot
+                          ? "bg-rosevia-gold text-rosevia-cream border-rosevia-gold shadow-sm"
+                          : "bg-rosevia-cream border-rosevia-rose/30 text-rosevia-clay hover:border-rosevia-gold/50"
+                      }`}
+                    >
+                      {slot === "both" ? "AM + PM" : slot.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={scheduleDays.length === 0}
+                className="w-full py-3 rounded-xl bg-rosevia-clay text-rosevia-cream text-xs tracking-widest font-bold uppercase hover:bg-rosevia-gold transition-all shadow cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+              >
+                <CheckCircle size={12} /> Apply Manual Schedule
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* FLOATING BOTTOM PREMIUM NAVIGATION DOCK (7 ITEMS) */}
+      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-lg glass-panel py-3 px-4 rounded-2xl flex justify-between items-center shadow-lg border border-rosevia-rose/40 z-50">
         <button 
           onClick={() => navigateTo("/")}
           className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
@@ -642,6 +911,13 @@ export default function SmartCabinet() {
         >
           <AlertCircle size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Checker</span>
+        </button>
+        <button 
+          onClick={() => navigateTo("/calendar")}
+          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
+        >
+          <Calendar size={18} />
+          <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Calendar</span>
         </button>
         <button 
           onClick={() => navigateTo("/journal")}

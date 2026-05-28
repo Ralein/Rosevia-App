@@ -28,7 +28,8 @@ import {
   Calendar,
   Play,
   Pause,
-  RotateCcw
+  RotateCcw,
+  Loader2
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import dynamic from "next/dynamic";
@@ -373,7 +374,7 @@ export default function Home() {
   if (!mounted) {
     return (
       <div className="min-h-screen bg-rosevia-cream flex items-center justify-center">
-        <LoaderSpinner />
+        <Loader2 />
       </div>
     );
   }
@@ -1233,3 +1234,4 @@ function LoaderSpinner() {
     </div>
   );
 }
+
