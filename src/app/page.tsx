@@ -723,7 +723,15 @@ export default function Home() {
         {/* Environmental & Hormonal Intelligence Hub */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* 1. Climate Simulator Widget with Dynamic Ambient Styling */}
-          <div className={`border p-6 rounded-2xl transition-all duration-500 bg-gradient-to-br ${env.ambientBg} shadow-sm space-y-4`}>
+          <div className={`border p-6 rounded-2xl transition-all duration-500 bg-gradient-to-br ${
+            weatherAdvice.uv.includes("High") || weatherAdvice.uv.includes("Extreme")
+              ? "from-amber-950/40 via-orange-950/20 to-[#060D0B] border-amber-900/30"
+              : parseInt(weatherAdvice.humidity) < 40 || parseInt(weatherAdvice.temp) < 10
+              ? "from-blue-950/40 via-indigo-950/20 to-[#060D0B] border-blue-900/30"
+              : parseInt(weatherAdvice.humidity) > 75 && parseInt(weatherAdvice.temp) > 25
+              ? "from-teal-950/40 via-emerald-950/20 to-[#060D0B] border-emerald-900/30"
+              : "from-purple-950/40 via-slate-950/20 to-[#060D0B] border-purple-900/30"
+          } shadow-sm space-y-4`}>
             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
               <div className="flex items-center space-x-2">
                 <MapPin size={16} className="text-rosevia-clay" />
@@ -733,7 +741,10 @@ export default function Home() {
                 {["Seoul", "Miami", "Sydney", "London"].map((city) => (
                   <button
                     key={city}
-                    onClick={() => setClimateSim(city)}
+                    onClick={() => {
+                      setClimateSim(city);
+                      if (profile) fetchRealTimeWeather(profile, city);
+                    }}
                     className={`text-[9px] font-bold px-2.5 py-1 rounded transition-all duration-300 cursor-pointer ${
                       climateSim === city 
                         ? "bg-rosevia-gold text-rosevia-cream shadow-xs"
@@ -746,20 +757,28 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Simulated Weather Metrics */}
+            {/* Weather Metrics */}
             <div className="grid grid-cols-3 gap-2 bg-rosevia-cream/80 border border-rosevia-rose/20 rounded-xl p-3 text-center shadow-xs">
               <div>
                 <p className="text-[9px] tracking-wider uppercase font-bold text-rosevia-clay/60">UV Index</p>
-                <p className="text-xs font-bold text-rosevia-gold mt-0.5">{env.uv}</p>
+                <p className="text-xs font-bold text-rosevia-gold mt-0.5">{weatherAdvice.uv}</p>
               </div>
               <div>
                 <p className="text-[9px] tracking-wider uppercase font-bold text-rosevia-clay/60">Humidity</p>
-                <p className="text-xs font-bold text-rosevia-gold mt-0.5">{env.humidity}</p>
+                <p className="text-xs font-bold text-rosevia-gold mt-0.5">{weatherAdvice.humidity}</p>
               </div>
               <div>
                 <p className="text-[9px] tracking-wider uppercase font-bold text-rosevia-clay/60">Recommendation</p>
-                <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full inline-block mt-0.5 ${env.accentColor}`}>
-                  {env.adjust}
+                <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full inline-block mt-0.5 ${
+                  weatherAdvice.uv.includes("High") || weatherAdvice.uv.includes("Extreme")
+                    ? "text-amber-300 bg-amber-950/60 border border-amber-800/40"
+                    : parseInt(weatherAdvice.humidity) < 40 || parseInt(weatherAdvice.temp) < 10
+                    ? "text-blue-300 bg-blue-950/60 border border-blue-800/40"
+                    : parseInt(weatherAdvice.humidity) > 75 && parseInt(weatherAdvice.temp) > 25
+                    ? "text-emerald-300 bg-emerald-950/60 border border-emerald-800/40"
+                    : "text-purple-300 bg-purple-950/60 border border-purple-800/40"
+                }`}>
+                  {weatherAdvice.adjust}
                 </span>
               </div>
             </div>
@@ -767,10 +786,10 @@ export default function Home() {
             {/* Smart Environmental Adaptive Tip */}
             <div className="bg-rosevia-cream border-l-2 border-rosevia-gold p-3.5 rounded-r-xl shadow-xs">
               <p className="text-[10px] font-bold text-rosevia-clay flex items-center">
-                <AlertCircle size={12} className="mr-1.5 text-rosevia-gold shrink-0" /> {env.title}
+                <AlertCircle size={12} className="mr-1.5 text-rosevia-gold shrink-0" /> {weatherAdvice.title} ({weatherAdvice.city})
               </p>
               <p className="text-[11px] text-rosevia-clay/85 mt-1 leading-relaxed font-medium">
-                {env.desc}
+                {weatherAdvice.desc}
               </p>
             </div>
           </div>
@@ -859,6 +878,142 @@ export default function Home() {
                 <p className="text-[9px] text-rosevia-clay mt-1 max-w-[200px] leading-relaxed font-semibold">
                   Adapt routines to biological hormone cycles to buffer micro-breakouts before they occur. Go to Settings to toggle sync.
                 </p>
+              </div>
+            )}
+            </div>
+
+        {/* Dynamic Skincare Timer & Supplement Tracker */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+          {/* 1. Wait Timer Widget */}
+          <div className={`${currentTheme.card} p-5 space-y-4 shadow-sm relative overflow-hidden flex flex-col justify-between`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Clock size={16} className={currentTheme.gold} />
+                <h3 className={`text-xs font-semibold tracking-widest uppercase ${currentTheme.accent}`}>Layer Penetration Timer</h3>
+              </div>
+              {waitTimer > 0 && (
+                <span className={`text-[9px] font-bold ${currentTheme.gold} tracking-wider uppercase bg-rosevia-green border border-rosevia-rose/30 px-2 py-0.5 rounded-full`}>
+                  Absorbing
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-4 py-2">
+              <div className="relative w-16 h-16 flex items-center justify-center shrink-0">
+                <svg className="absolute w-full h-full transform -rotate-90">
+                  <circle cx="32" cy="32" r="26" stroke={theme === "Rose Quartz Luxury" ? "#251117" : "#111C18"} strokeWidth="3.5" fill="transparent" />
+                  <circle 
+                    cx="32" 
+                    cy="32" 
+                    r="26" 
+                    stroke={theme === "Rose Quartz Luxury" ? "#E07A9A" : "#D4AF37"} 
+                    strokeWidth="3.5" 
+                    fill="transparent" 
+                    strokeDasharray={163}
+                    strokeDashoffset={timerMax > 0 ? 163 - (163 * waitTimer) / timerMax : 163} 
+                    strokeLinecap="round"
+                    className="transition-all duration-1000 linear"
+                  />
+                </svg>
+                <span className="text-xs font-bold text-rosevia-charcoal z-10">
+                  {waitTimer > 0 ? `${Math.floor(waitTimer / 60)}:${String(waitTimer % 60).padStart(2, "0")}` : "0:00"}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-[10px] ${currentTheme.accent} leading-relaxed font-semibold`}>
+                  {waitTimer > 0 
+                    ? "Wait for your active acid/serum layer to fully penetrate before layering the next product." 
+                    : "Start a clinical wait timer to ensure correct active ingredient absorption rates."}
+                </p>
+                <div className="flex flex-wrap gap-1.5 pt-2">
+                  {waitTimer > 0 ? (
+                    <>
+                      <button 
+                        onClick={isTimerActive ? stopWaitTimer : () => setIsTimerActive(true)}
+                        className="px-2.5 py-1 rounded bg-rosevia-green border border-rosevia-sage/35 text-[9px] font-bold tracking-wider uppercase text-rosevia-sage hover:bg-rosevia-sage hover:text-rosevia-cream cursor-pointer transition-all shadow-xs"
+                      >
+                        {isTimerActive ? <Pause size={10} className="inline mr-1" /> : <Play size={10} className="inline mr-1" />}
+                        {isTimerActive ? "Pause" : "Resume"}
+                      </button>
+                      <button 
+                        onClick={resetWaitTimer}
+                        className="px-2.5 py-1 rounded bg-rose-950/40 border border-rose-800/40 text-[9px] font-bold tracking-wider uppercase text-rose-300 hover:bg-rose-900/60 cursor-pointer transition-all shadow-xs"
+                      >
+                        <RotateCcw size={10} className="inline mr-1" /> Reset
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button 
+                        onClick={() => startWaitTimer(2)}
+                        className="px-2.5 py-1 rounded bg-rosevia-gold/15 border border-rosevia-gold/30 text-[9px] font-bold tracking-wider uppercase text-rosevia-gold hover:bg-rosevia-gold hover:text-rosevia-cream cursor-pointer transition-all shadow-xs"
+                      >
+                        2 Mins
+                      </button>
+                      <button 
+                        onClick={() => startWaitTimer(5)}
+                        className="px-2.5 py-1 rounded bg-rosevia-gold/15 border border-rosevia-gold/30 text-[9px] font-bold tracking-wider uppercase text-rosevia-gold hover:bg-rosevia-gold hover:text-rosevia-cream cursor-pointer transition-all shadow-xs"
+                      >
+                        5 Mins
+                      </button>
+                      <button 
+                        onClick={() => startWaitTimer(10)}
+                        className="px-2.5 py-1 rounded bg-rosevia-gold/15 border border-rosevia-gold/30 text-[9px] font-bold tracking-wider uppercase text-rosevia-gold hover:bg-rosevia-gold hover:text-rosevia-cream cursor-pointer transition-all shadow-xs"
+                      >
+                        10 Mins
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Tablet Dosage Tracker Widget */}
+          <div className={`${currentTheme.card} p-5 space-y-4 shadow-sm relative overflow-hidden flex flex-col justify-between`}>
+            <div className="flex items-center space-x-2">
+              <Sparkles size={16} className={currentTheme.gold} />
+              <h3 className={`text-xs font-semibold tracking-widest uppercase ${currentTheme.accent}`}>Supplement Tracker</h3>
+            </div>
+            {tablets.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center text-center p-3 border border-dashed border-rosevia-rose/30 rounded-xl bg-rosevia-cream/30">
+                <p className={`text-[10px] ${currentTheme.accent} opacity-60 italic font-semibold`}>
+                  No tablets cataloged in your cabinet.
+                </p>
+                <button 
+                  onClick={() => navigateTo("/cabinet")}
+                  className={`text-[9px] font-bold ${currentTheme.gold} hover:underline mt-1.5 block cursor-pointer`}
+                >
+                  Add supplement tablets →
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-24 overflow-y-auto pr-1">
+                {tablets.map((item) => (
+                  <div 
+                    key={item.id} 
+                    className="bg-rosevia-cream/85 border border-rosevia-rose/25 rounded-xl p-2.5 flex items-center justify-between shadow-xs"
+                  >
+                    <div className="flex items-center space-x-2 min-w-0">
+                      <div className="w-5 h-7 bg-rosevia-sand border border-rosevia-gold/30 rounded flex flex-col items-center justify-center gap-0.5 shrink-0">
+                        <div className="w-3.5 h-1.5 bg-rosevia-gold/80 rounded-full" />
+                        <div className="w-3.5 h-1.5 bg-rosevia-clay/40 rounded-full" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-bold text-rosevia-charcoal truncate">{item.name}</p>
+                        <p className={`text-[9px] ${item.remainingTablets <= 5 ? "text-rosevia-terracotta" : "text-rosevia-gold"} font-bold`}>
+                          {item.remainingTablets || 0} left
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => logTakePill(item.id, item.name)}
+                      disabled={!item.remainingTablets || item.remainingTablets <= 0}
+                      className="px-2 py-1 rounded bg-rosevia-gold/15 hover:bg-rosevia-gold hover:text-rosevia-cream text-[8px] font-bold uppercase tracking-wider text-rosevia-gold transition-all duration-300 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-xs"
+                    >
+                      Dose
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -1013,8 +1168,8 @@ export default function Home() {
 
       </div>
 
-      {/* FLOATING BOTTOM PREMIUM NAVIGATION DOCK (BALANCED FOR 6 ITEMS WITH SETTINGS) */}
-      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md glass-panel py-3.5 px-6 rounded-2xl flex justify-between items-center shadow-lg border border-rosevia-rose/40 z-50">
+      {/* FLOATING BOTTOM PREMIUM NAVIGATION DOCK (BALANCED FOR 7 ITEMS) */}
+      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-lg glass-panel py-3 px-4 rounded-2xl flex justify-between items-center shadow-lg border border-rosevia-rose/40 z-50">
         <button 
           onClick={() => navigateTo("/")}
           className="flex flex-col items-center text-rosevia-gold shrink-0 cursor-pointer"
@@ -1042,6 +1197,13 @@ export default function Home() {
         >
           <AlertCircle size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Checker</span>
+        </button>
+        <button 
+          onClick={() => navigateTo("/calendar")}
+          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
+        >
+          <Calendar size={18} />
+          <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Calendar</span>
         </button>
         <button 
           onClick={() => navigateTo("/journal")}
