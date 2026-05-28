@@ -15,8 +15,11 @@ import {
   CheckCircle,
   CalendarDays,
   Loader2,
-  Settings
+  Settings,
+  Calendar,
+  X
 } from "lucide-react";
+import { fetchDbState, postDbAction } from "@/lib/dbSync";
 
 interface Product {
   id: string;
@@ -26,6 +29,8 @@ interface Product {
   expiryDate: string; 
   fluidLevel: number; 
   ingredients: string[];
+  totalTablets?: number;
+  remainingTablets?: number;
 }
 
 export default function SmartCabinet() {
@@ -34,6 +39,11 @@ export default function SmartCabinet() {
   const [scanning, setScanning] = useState(false);
   const [scheduledStatus, setScheduledStatus] = useState<string | null>(null);
   const [theme, setTheme] = useState("Midnight Jade");
+
+  // Custom Scheduler Modal States
+  const [schedulingProduct, setSchedulingProduct] = useState<Product | null>(null);
+  const [scheduleDays, setScheduleDays] = useState<string[]>(["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]);
+  const [scheduleSlot, setScheduleSlot] = useState<"am" | "pm" | "both">("both");
   
   const navigateTo = (path: string) => {
     window.location.href = path;
@@ -42,18 +52,30 @@ export default function SmartCabinet() {
   const defaultCabinet: Product[] = [];
 
   useEffect(() => {
-    const savedCabinet = localStorage.getItem("rosevia_cabinet");
-    if (savedCabinet) {
-      setCabinet(JSON.parse(savedCabinet));
-    } else {
-      setCabinet(defaultCabinet);
-      localStorage.setItem("rosevia_cabinet", JSON.stringify(defaultCabinet));
-    }
+    const loadData = async () => {
+      const dbState = await fetchDbState();
+      if (dbState) {
+        if (dbState.cabinet) {
+          setCabinet(dbState.cabinet);
+          localStorage.setItem("rosevia_cabinet", JSON.stringify(dbState.cabinet));
+        }
+      } else {
+        const savedCabinet = localStorage.getItem("rosevia_cabinet");
+        if (savedCabinet) {
+          setCabinet(JSON.parse(savedCabinet));
+        } else {
+          setCabinet(defaultCabinet);
+          localStorage.setItem("rosevia_cabinet", JSON.stringify(defaultCabinet));
+        }
+      }
 
-    const savedTheme = localStorage.getItem("rosevia_theme");
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
+      const savedTheme = localStorage.getItem("rosevia_theme");
+      if (savedTheme) {
+        setTheme(savedTheme);
+      }
+    };
+
+    loadData();
   }, []);
 
   const getThemeClasses = () => {
@@ -104,10 +126,11 @@ export default function SmartCabinet() {
 
   const currentTheme = getThemeClasses();
 
-  const saveCabinetToStorage = (updatedCabinet: Product[]) => {
+  const saveCabinetToStorage = async (updatedCabinet: Product[]) => {
     setCabinet(updatedCabinet);
     localStorage.setItem("rosevia_cabinet", JSON.stringify(updatedCabinet));
   };
+
 
   const handleScanProduct = async () => {
     if (!newProductName.trim()) return;
@@ -128,6 +151,7 @@ export default function SmartCabinet() {
         today.setMonth(today.getMonth() + (data.product.expiryMonths || 12));
         const formattedExpiry = today.toISOString().split("T")[0];
 
+        const isTablet = data.product.category.toLowerCase() === "tablet";
         const scannedProduct: Product = {
           id: `prod-${Date.now()}`,
           name: data.product.name,
@@ -135,11 +159,13 @@ export default function SmartCabinet() {
           pao: data.product.pao || "12M",
           expiryDate: formattedExpiry,
           fluidLevel: 100, 
-          ingredients: data.product.ingredients || ["Water", "Glycerin"]
+          ingredients: data.product.ingredients || ["Water", "Glycerin"],
+          ...(isTablet && { totalTablets: 30, remainingTablets: 30 })
         };
 
         const updated = [scannedProduct, ...cabinet];
-        saveCabinetToStorage(updated);
+        await saveCabinetToStorage(updated);
+        await postDbAction("save_cabinet_item", { item: scannedProduct });
         setNewProductName("");
       }
     } catch (error) {
@@ -149,23 +175,72 @@ export default function SmartCabinet() {
     }
   };
 
-  const deleteProduct = (id: string) => {
+  const deleteProduct = async (id: string) => {
     const updated = cabinet.filter((p) => p.id !== id);
-    saveCabinetToStorage(updated);
+    await saveCabinetToStorage(updated);
+    await postDbAction("delete_cabinet_item", { id });
   };
 
-  const adjustFluidLevel = (id: string, amount: number) => {
+  const adjustFluidLevel = async (id: string, amount: number) => {
+    let updatedItem: Product | null = null;
     const updated = cabinet.map((p) => {
       if (p.id === id) {
-        const nextLevel = Math.max(0, Math.min(100, p.fluidLevel + amount));
-        return { ...p, fluidLevel: nextLevel };
+        if (p.category.toLowerCase() === "tablet") {
+          const nextRemaining = Math.max(0, Math.min(p.totalTablets || 30, (p.remainingTablets || 0) + amount));
+          updatedItem = { ...p, remainingTablets: nextRemaining };
+          return updatedItem;
+        } else {
+          const nextLevel = Math.max(0, Math.min(100, p.fluidLevel + amount));
+          updatedItem = { ...p, fluidLevel: nextLevel };
+          return updatedItem;
+        }
       }
       return p;
     });
-    saveCabinetToStorage(updated);
+    setCabinet(updated);
+    localStorage.setItem("rosevia_cabinet", JSON.stringify(updated));
+    if (updatedItem) {
+      await postDbAction("save_cabinet_item", { item: updatedItem });
+    }
   };
 
-  const handleScheduleIntoRoutine = (product: Product) => {
+  const handleSaveManualSchedule = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!schedulingProduct) return;
+
+    const savedRoutine = localStorage.getItem("rosevia_routine");
+    if (!savedRoutine) return;
+
+    const routineObj = JSON.parse(savedRoutine);
+    const updatedWeeklyCycle = { ...routineObj.weeklyCycle };
+    const name = schedulingProduct.name;
+
+    for (const day of scheduleDays) {
+      if (!updatedWeeklyCycle[day]) {
+        updatedWeeklyCycle[day] = { am: [], pm: [] };
+      }
+      if (scheduleSlot === "am" || scheduleSlot === "both") {
+        if (!updatedWeeklyCycle[day].am.includes(name)) {
+          updatedWeeklyCycle[day].am.push(name);
+        }
+      }
+      if (scheduleSlot === "pm" || scheduleSlot === "both") {
+        if (!updatedWeeklyCycle[day].pm.includes(name)) {
+          updatedWeeklyCycle[day].pm.push(name);
+        }
+      }
+    }
+
+    routineObj.weeklyCycle = updatedWeeklyCycle;
+    localStorage.setItem("rosevia_routine", JSON.stringify(routineObj));
+    await postDbAction("save_routine", { routine: routineObj });
+
+    setScheduledStatus(`"${name}" scheduled manually!`);
+    setSchedulingProduct(null);
+    setTimeout(() => setScheduledStatus(null), 3000);
+  };
+
+  const handleScheduleIntoRoutine = async (product: Product) => {
     const savedRoutine = localStorage.getItem("rosevia_routine");
     if (!savedRoutine) return;
     
@@ -253,6 +328,7 @@ export default function SmartCabinet() {
 
     routineObj.weeklyCycle = updatedWeeklyCycle;
     localStorage.setItem("rosevia_routine", JSON.stringify(routineObj));
+    await postDbAction("save_routine", { routine: routineObj });
     
     setScheduledStatus(`"${name}" successfully scheduled by AI!`);
     setTimeout(() => setScheduledStatus(null), 3000);
