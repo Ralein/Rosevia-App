@@ -31,6 +31,11 @@ interface Reminders {
   spfInterval: number;
 }
 
+const getInitials = (name?: string) => {
+  if (!name) return "US";
+  return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+};
+
 export default function SkincareSettings() {
   const [mounted, setMounted] = useState(false);
   const [profile, setProfile] = useState<any>(null);
@@ -194,7 +199,7 @@ export default function SkincareSettings() {
             onClick={() => navigateTo("/")}
             className={`w-10 h-10 rounded-full bg-gradient-to-tr from-rosevia-gold/30 to-rosevia-rose/30 border ${currentTheme.gold === "text-rosevia-gold" ? "border-rosevia-gold/50 text-rosevia-gold" : "border-neutral-500 text-neutral-400"} flex items-center justify-center font-serif text-xs font-bold hover:shadow-lg transition-all shrink-0 cursor-pointer`}
           >
-            RN
+            {getInitials(profile?.name)}
           </button>
         </header>
 
@@ -202,10 +207,10 @@ export default function SkincareSettings() {
         <div className={`${currentTheme.card} p-4 flex items-center justify-between shadow-xs border-l-2 border-rosevia-gold`}>
           <div className="flex items-center space-x-3.5">
             <div className="relative w-10 h-10 rounded-full bg-rosevia-rose/30 flex items-center justify-center border border-rosevia-gold/30 shrink-0">
-              <span className={`font-serif text-xs font-bold ${currentTheme.gold}`}>R</span>
+              <span className={`font-serif text-xs font-bold ${currentTheme.gold}`}>{getInitials(profile?.name)}</span>
             </div>
             <div>
-              <p className="text-xs font-bold leading-none">Skincare Profile: Ralein</p>
+              <p className="text-xs font-bold leading-none">Skincare Profile: {profile?.name || "User"}</p>
               <p className={`text-[9px] ${currentTheme.accent} font-bold uppercase mt-1 tracking-wider`}>
                 Skin Type: {profile.skinType} | Concerns: {profile.concerns.join(", ")}
               </p>

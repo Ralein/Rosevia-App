@@ -7,6 +7,7 @@ export async function setupDatabase() {
     await query(`
       CREATE TABLE IF NOT EXISTS profile (
         id VARCHAR(50) PRIMARY KEY,
+        name VARCHAR(255),
         skin_type VARCHAR(50),
         concerns JSONB,
         climate VARCHAR(100),
@@ -32,6 +33,7 @@ export async function setupDatabase() {
     await query(`
       CREATE TABLE IF NOT EXISTS cabinet (
         id VARCHAR(50) PRIMARY KEY,
+        user_id VARCHAR(50),
         name VARCHAR(255),
         category VARCHAR(50),
         pao VARCHAR(20),
@@ -48,6 +50,7 @@ export async function setupDatabase() {
     await query(`
       CREATE TABLE IF NOT EXISTS journal (
         id VARCHAR(50) PRIMARY KEY,
+        user_id VARCHAR(50),
         water INTEGER,
         sleep INTEGER,
         stress VARCHAR(20),
@@ -62,6 +65,7 @@ export async function setupDatabase() {
     await query(`
       CREATE TABLE IF NOT EXISTS scans (
         id VARCHAR(50) PRIMARY KEY,
+        user_id VARCHAR(50),
         image TEXT,
         score INTEGER,
         barrier_status VARCHAR(100),
@@ -76,6 +80,7 @@ export async function setupDatabase() {
     await query(`
       CREATE TABLE IF NOT EXISTS calendar_events (
         id VARCHAR(50) PRIMARY KEY,
+        user_id VARCHAR(50),
         title VARCHAR(255),
         event_date VARCHAR(50),
         start_time VARCHAR(20),
@@ -86,6 +91,13 @@ export async function setupDatabase() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Schema Migrations (Add missing columns to existing databases)
+    await query(`ALTER TABLE profile ADD COLUMN IF NOT EXISTS name VARCHAR(255)`);
+    await query(`ALTER TABLE cabinet ADD COLUMN IF NOT EXISTS user_id VARCHAR(50)`);
+    await query(`ALTER TABLE journal ADD COLUMN IF NOT EXISTS user_id VARCHAR(50)`);
+    await query(`ALTER TABLE scans ADD COLUMN IF NOT EXISTS user_id VARCHAR(50)`);
+    await query(`ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS user_id VARCHAR(50)`);
 
     console.log("Rosevia database setup completed successfully.");
     return true;

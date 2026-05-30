@@ -57,6 +57,7 @@ interface Routine {
 }
 
 interface Profile {
+  name?: string;
   skinType: string;
   concerns: string[];
   climate: string;
@@ -82,6 +83,11 @@ interface WeatherAdvice {
   adjust: string;
   city: string;
 }
+
+const getInitials = (name?: string) => {
+  if (!name) return "US";
+  return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+};
 
 export default function Home() {
   const router = useRouter();
@@ -530,7 +536,7 @@ export default function Home() {
           <div>
             <h1 className="text-xs tracking-widest font-bold text-rosevia-clay uppercase">Welcome to Your Path</h1>
             <p className="text-2xl md:text-3xl font-serif tracking-tight font-light mt-1">
-              Welcome back, <span className={`italic ${currentTheme.gold} font-normal`}>Ralein.</span>
+              Welcome back, <span className={`italic ${currentTheme.gold} font-normal`}>{profile?.name || "User"}.</span>
             </p>
           </div>
 
@@ -547,14 +553,14 @@ export default function Home() {
                 onClick={() => setShowProfileDropdown(!showProfileDropdown)}
                 className={`w-10 h-10 rounded-full bg-gradient-to-tr from-rosevia-gold/30 to-rosevia-rose/30 border ${currentTheme.gold === "text-rosevia-gold" ? "border-rosevia-gold/50 text-rosevia-gold" : "border-neutral-500 text-neutral-400"} flex items-center justify-center font-serif text-xs font-bold hover:shadow-lg transition-all cursor-pointer`}
               >
-                RN
+                {getInitials(profile?.name)}
               </button>
 
               {/* Glassmorphic Dropdown Overlay */}
               {showProfileDropdown && (
                 <div className="absolute right-0 mt-2 w-64 glass-panel rounded-2xl p-4 shadow-xl z-50 animate-fade-in space-y-4">
                   <div className="border-b border-rosevia-rose/20 pb-3">
-                    <p className="text-xs font-bold leading-none">Ralein's Skincare Profile</p>
+                    <p className="text-xs font-bold leading-none">{profile?.name || "User"}'s Skincare Profile</p>
                     <span className={`text-[8px] ${currentTheme.gold} uppercase tracking-wider font-bold block mt-1`}>Clinical Skin Metrics</span>
                   </div>
                   
@@ -661,15 +667,6 @@ export default function Home() {
                 <p className="text-xs font-bold text-rosevia-charcoal mt-1">{reminders.spfTime} (Every {reminders.spfInterval}h)</p>
               </div>
             </div>
-          </div>
-
-          {/* Simulated Active Push-Alert Banner */}
-          <div className="bg-rosevia-green border-l-2 border-rosevia-gold p-3 rounded-xl flex items-center justify-between text-[11px] font-medium text-rosevia-clay animate-pulse">
-            <span className="flex items-center gap-2">
-              <Bell size={12} className="text-rosevia-gold animate-bounce shrink-0" />
-              <span>Reminder Active: Sunscreen (SPF) reapplication alert scheduled in <b>1 hour 45 minutes</b></span>
-            </span>
-            <span className="text-[9px] uppercase tracking-widest font-bold text-rosevia-gold shrink-0">Simulated Alert</span>
           </div>
         </div>
 

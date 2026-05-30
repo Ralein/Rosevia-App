@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { 
   Camera, 
   Sparkles, 
@@ -15,6 +15,12 @@ import {
   Calendar
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { fetchDbState, postDbAction } from "@/lib/dbSync";
+
+const getInitials = (name?: string) => {
+  if (!name) return "US";
+  return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+};
 
 export default function SkinAnalysis() {
   const [profile, setProfile] = useState<any>(null);
@@ -24,6 +30,11 @@ export default function SkinAnalysis() {
   const [report, setReport] = useState<any>(null);
   const [theme, setTheme] = useState("Midnight Jade");
 
+  // Camera specific states
+  const [showCamera, setShowCamera] = useState(false);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
   const router = useRouter();
 
   const navigateTo = (path: string) => {
@@ -31,18 +42,88 @@ export default function SkinAnalysis() {
   };
 
   useEffect(() => {
-    const savedProfile = localStorage.getItem("rosevia_profile");
-    if (savedProfile) {
-      setProfile(JSON.parse(savedProfile));
-    } else {
-      setProfile({ skinType: "Combination", concerns: ["Acne", "Redness"] });
-    }
+    const loadData = async () => {
+      const dbState = await fetchDbState();
+      if (dbState && dbState.profile) {
+        setProfile(dbState.profile);
+        localStorage.setItem("rosevia_profile", JSON.stringify(dbState.profile));
+      } else {
+        const savedProfile = localStorage.getItem("rosevia_profile");
+        if (savedProfile) {
+          setProfile(JSON.parse(savedProfile));
+        } else {
+          setProfile({ name: "User", skinType: "Combination", concerns: ["Acne", "Redness"] });
+        }
+      }
+    };
+    
+    loadData();
 
     const savedTheme = localStorage.getItem("rosevia_theme");
     if (savedTheme) {
       setTheme(savedTheme);
     }
   }, []);
+
+  // Control camera stream when showCamera changes
+  useEffect(() => {
+    let activeStream: MediaStream | null = null;
+    if (showCamera) {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false })
+        .then((stream) => {
+          activeStream = stream;
+          setCameraStream(stream);
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+        })
+        .catch((err) => {
+          console.error("Camera access error:", err);
+          alert("Could not access camera. Please check permissions.");
+          setShowCamera(false);
+        });
+    }
+    return () => {
+      if (activeStream) {
+        activeStream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [showCamera]);
+
+  const startCamera = () => {
+    setImage(null);
+    setReport(null);
+    setShowCamera(true);
+  };
+
+  const stopCamera = () => {
+    setShowCamera(false);
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      setCameraStream(null);
+    }
+  };
+
+  const capturePhoto = () => {
+    if (videoRef.current) {
+      const video = videoRef.current;
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        // Draw video frame (mirrored to match preview)
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Convert to Base64
+        const dataUrl = canvas.toDataURL("image/jpeg");
+        setImage(dataUrl);
+        stopCamera();
+      }
+    }
+  };
 
   const getThemeClasses = () => {
     switch (theme) {
@@ -124,6 +205,18 @@ export default function SkinAnalysis() {
       const data = await response.json();
       if (data.report) {
         setReport(data.report);
+        
+        // Save the scan report to the database
+        const newScan = {
+          id: `scan-${Date.now()}`,
+          image,
+          score: data.report.score,
+          barrierStatus: data.report.barrierStatus,
+          diagnosis: data.report.diagnosis,
+          metrics: data.report.metrics,
+          explanation: data.report.explanation
+        };
+        await postDbAction("save_scan", { scan: newScan });
       }
     } catch (error) {
       console.error("Selfie scan failed:", error);
@@ -167,7 +260,7 @@ export default function SkinAnalysis() {
                 : "from-rosevia-gold/30 to-rosevia-rose/30 border-rosevia-gold/50"
             } border flex items-center justify-center font-serif text-xs font-bold ${currentTheme.gold} hover:shadow-lg transition-all shrink-0 cursor-pointer`}
           >
-            RN
+            {getInitials(profile?.name)}
           </button>
         </header>
 
@@ -181,7 +274,15 @@ export default function SkinAnalysis() {
             <div className={`relative w-full aspect-[3/4] max-w-[280px] ${
               theme === "Rose Quartz Luxury" ? "bg-rosevia-rose-dark border-rosevia-rose-light/25" : "bg-rosevia-sand border-rosevia-rose/25"
             } border rounded-2xl overflow-hidden flex flex-col items-center justify-center text-center shadow-inner group`}>
-              {image ? (
+              {showCamera ? (
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover scale-x-[-1]"
+                />
+              ) : image ? (
                 <>
                   <img src={image} alt="Selfie upload" className="w-full h-full object-cover" />
                   
@@ -256,26 +357,55 @@ export default function SkinAnalysis() {
 
             {/* Controls */}
             <div className="w-full flex flex-col space-y-2 pt-2">
-              <label className={`w-full py-3.5 rounded-xl border border-dashed ${
-                theme === "Rose Quartz Luxury" 
-                  ? "border-rosevia-rose-light bg-rosevia-rose-dark/65 hover:bg-rosevia-rose-light/10" 
-                  : "border-rosevia-rose bg-rosevia-cream/65 hover:bg-rosevia-rose/10"
-              } transition-all text-xs tracking-widest font-bold uppercase ${currentTheme.accent} text-center cursor-pointer block shadow-xs`}>
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={handleImageUpload} 
-                  className="hidden" 
-                />
-                Choose Photo
-              </label>
-              {image && !scanning && (
-                <button
-                  onClick={startVisualScan}
-                  className={`w-full py-4 rounded-xl text-rosevia-cream text-xs tracking-widest font-bold uppercase transition-all cursor-pointer flex items-center justify-center shadow-md transform hover:-translate-y-0.5 ${currentTheme.button}`}
-                >
-                  {scanning ? <Loader2 size={14} className="animate-spin mr-2" /> : <Camera size={14} className="mr-2" />} Start AI Diagnostics
-                </button>
+              {showCamera ? (
+                <>
+                  <button
+                    onClick={capturePhoto}
+                    className={`w-full py-3.5 rounded-xl text-rosevia-cream text-xs tracking-widest font-bold uppercase transition-all cursor-pointer flex items-center justify-center shadow-md transform hover:-translate-y-0.5 ${currentTheme.button}`}
+                  >
+                    <Camera size={14} className="mr-2" /> Capture Photo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={stopCamera}
+                    className={`w-full py-3.5 rounded-xl border border-rosevia-rose/40 hover:bg-rosevia-rose/10 text-xs tracking-widest font-bold uppercase transition-all cursor-pointer flex items-center justify-center ${currentTheme.accent}`}
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="flex gap-2">
+                    <label className={`flex-1 py-3.5 rounded-xl border border-dashed ${
+                      theme === "Rose Quartz Luxury" 
+                        ? "border-rosevia-rose-light bg-rosevia-rose-dark/65 hover:bg-rosevia-rose-light/10" 
+                        : "border-rosevia-rose bg-rosevia-cream/65 hover:bg-rosevia-rose/10"
+                    } transition-all text-xs tracking-widest font-bold uppercase ${currentTheme.accent} text-center cursor-pointer block shadow-xs`}>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={handleImageUpload} 
+                        className="hidden" 
+                      />
+                      Choose Photo
+                    </label>
+                    <button
+                      type="button"
+                      onClick={startCamera}
+                      className={`flex-1 py-3.5 rounded-xl border border-rosevia-rose bg-rosevia-cream/65 hover:bg-rosevia-rose/10 transition-all text-xs tracking-widest font-bold uppercase ${currentTheme.accent} flex items-center justify-center gap-1.5 shadow-xs`}
+                    >
+                      <Camera size={14} /> Open Camera
+                    </button>
+                  </div>
+                  {image && !scanning && (
+                    <button
+                      onClick={startVisualScan}
+                      className={`w-full py-4 rounded-xl text-rosevia-cream text-xs tracking-widest font-bold uppercase transition-all cursor-pointer flex items-center justify-center shadow-md transform hover:-translate-y-0.5 ${currentTheme.button}`}
+                    >
+                      {scanning ? <Loader2 size={14} className="animate-spin mr-2" /> : <Camera size={14} className="mr-2" />} Start AI Diagnostics
+                    </button>
+                  )}
+                </>
               )}
             </div>
           </div>

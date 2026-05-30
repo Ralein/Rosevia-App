@@ -34,6 +34,11 @@ interface ConflictResult {
   solution: string;
 }
 
+const getInitials = (name?: string) => {
+  if (!name) return "US";
+  return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+};
+
 export default function ConflictChecker() {
   const [cabinet, setCabinet] = useState<Product[]>([]);
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
@@ -41,6 +46,7 @@ export default function ConflictChecker() {
   const [analyzing, setAnalyzing] = useState(false);
   const [results, setResults] = useState<ConflictResult[] | null>(null);
   const [theme, setTheme] = useState("Midnight Jade");
+  const [profileName, setProfileName] = useState("");
 
   const router = useRouter();
 
@@ -57,6 +63,14 @@ export default function ConflictChecker() {
     const savedTheme = localStorage.getItem("rosevia_theme");
     if (savedTheme) {
       setTheme(savedTheme);
+    }
+
+    const savedProfile = localStorage.getItem("rosevia_profile");
+    if (savedProfile) {
+      try {
+        const p = JSON.parse(savedProfile);
+        if (p.name) setProfileName(p.name);
+      } catch (e) {}
     }
   }, []);
 
@@ -179,7 +193,7 @@ export default function ConflictChecker() {
             onClick={() => navigateTo("/")}
             className={`w-10 h-10 rounded-full bg-gradient-to-tr from-rosevia-gold/30 to-rosevia-rose/30 border border-rosevia-gold/50 flex items-center justify-center font-serif text-xs font-bold ${currentTheme.gold} hover:shadow-lg transition-all shrink-0 cursor-pointer`}
           >
-            RN
+            {getInitials(profileName)}
           </button>
         </header>
 

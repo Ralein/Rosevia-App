@@ -26,6 +26,11 @@ interface InsightItem {
   desc: string;
 }
 
+const getInitials = (name?: string) => {
+  if (!name) return "US";
+  return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+};
+
 export default function SkinJournal() {
   const [water, setWater] = useState(3);
   const [sleep, setSleep] = useState(7);
@@ -39,6 +44,7 @@ export default function SkinJournal() {
   const [insights, setInsights] = useState<InsightItem[] | null>(null);
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [theme, setTheme] = useState("Midnight Jade");
+  const [profileName, setProfileName] = useState("");
 
   const router = useRouter();
 
@@ -49,8 +55,11 @@ export default function SkinJournal() {
   useEffect(() => {
     const savedProfile = localStorage.getItem("rosevia_profile");
     if (savedProfile) {
-      const parsed = JSON.parse(savedProfile);
-      setMenstrualSync(parsed.climate === "Moderate" ? true : false); 
+      try {
+        const parsed = JSON.parse(savedProfile);
+        setMenstrualSync(parsed.climate === "Moderate" ? true : false); 
+        if (parsed.name) setProfileName(parsed.name);
+      } catch (e) {}
     }
     
     const savedToggles = localStorage.getItem("rosevia_system_toggles");
@@ -179,7 +188,7 @@ export default function SkinJournal() {
             onClick={() => navigateTo("/")}
             className={`w-10 h-10 rounded-full bg-gradient-to-tr from-rosevia-gold/30 to-rosevia-rose/30 border border-rosevia-gold/50 flex items-center justify-center font-serif text-xs font-bold ${currentTheme.gold} hover:shadow-lg transition-all shrink-0 cursor-pointer`}
           >
-            RN
+            {getInitials(profileName)}
           </button>
         </header>
 

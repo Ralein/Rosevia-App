@@ -61,12 +61,18 @@ const CONFLICT_PAIRS: [string[], string[], string][] = [
   [["aha", "glycolic", "lactic"], ["bha", "salicylic"], "AHA + BHA together can over-strip. Alternate usage days."],
 ];
 
+const getInitials = (name?: string) => {
+  if (!name) return "US";
+  return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+};
+
 export default function SmartCabinet() {
   const [cabinet, setCabinet] = useState<Product[]>([]);
   const [newProductName, setNewProductName] = useState("");
   const [scanning, setScanning] = useState(false);
   const [scheduledStatus, setScheduledStatus] = useState<string | null>(null);
   const [theme, setTheme] = useState("Midnight Jade");
+  const [profileName, setProfileName] = useState("");
 
   // Custom Scheduler Modal States
   const [schedulingProduct, setSchedulingProduct] = useState<Product | null>(null);
@@ -110,6 +116,14 @@ export default function SmartCabinet() {
       const savedTheme = localStorage.getItem("rosevia_theme");
       if (savedTheme) {
         setTheme(savedTheme);
+      }
+
+      const savedProfile = localStorage.getItem("rosevia_profile");
+      if (savedProfile) {
+        try {
+          const p = JSON.parse(savedProfile);
+          if (p.name) setProfileName(p.name);
+        } catch (e) {}
       }
     };
 
@@ -675,7 +689,7 @@ export default function SmartCabinet() {
             onClick={() => navigateTo("/")}
             className={`w-10 h-10 rounded-full bg-gradient-to-tr from-rosevia-gold/30 to-rosevia-rose/30 border border-rosevia-gold/50 flex items-center justify-center font-serif text-xs font-bold ${currentTheme.gold} hover:shadow-lg transition-all shrink-0 cursor-pointer`}
           >
-            RN
+            {getInitials(profileName)}
           </button>
         </header>
 

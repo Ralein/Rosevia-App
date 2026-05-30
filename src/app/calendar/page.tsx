@@ -21,6 +21,12 @@ import {
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { fetchDbState, postDbAction } from "@/lib/dbSync";
+import { useRouter } from "next/navigation";
+
+const getInitials = (name?: string) => {
+  if (!name) return "US";
+  return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+};
 
 interface CalendarEvent {
   id: string;
@@ -41,11 +47,20 @@ interface Routine {
 }
 
 export default function TeamsSkincareCalendar() {
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [routine, setRoutine] = useState<Routine | null>(null);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [theme, setTheme] = useState("Midnight Jade");
+  const [reminders, setReminders] = useState({
+    serumTimeAM: "08:00",
+    serumTimePM: "21:30",
+    moistTimeAM: "08:15",
+    moistTimePM: "21:45",
+    spfTime: "09:00",
+    spfInterval: 2
+  });
   
   // Date states
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(new Date());
@@ -60,7 +75,7 @@ export default function TeamsSkincareCalendar() {
   const [eventNotes, setEventNotes] = useState("");
 
   const navigateTo = (path: string) => {
-    window.location.href = path;
+    router.push(path);
   };
 
   useEffect(() => {
@@ -101,10 +116,50 @@ export default function TeamsSkincareCalendar() {
       if (savedTheme) {
         setTheme(savedTheme);
       }
+
+      const savedReminders = localStorage.getItem("rosevia_reminders");
+      if (savedReminders) {
+        try {
+          setReminders(JSON.parse(savedReminders));
+        } catch (e) {}
+      }
     };
 
     loadData();
   }, []);
+
+  const quickScheduleRoutine = async (dateStr: string, period: "am" | "pm") => {
+    if (!routine) return;
+    const dateObj = new Date(dateStr);
+    const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+    const dayNameLower = days[dateObj.getDay()];
+    const tasks = routine.weeklyCycle[dayNameLower]?.[period] || [];
+    if (tasks.length === 0) return;
+
+    const startTime = period === "am" ? (reminders.serumTimeAM || "08:00") : (reminders.serumTimePM || "21:30");
+    const endTime = period === "am" ? (reminders.moistTimeAM || "08:15") : (reminders.moistTimePM || "21:45");
+
+    const newEvent: CalendarEvent = {
+      id: `evt-${Date.now()}-${period}`,
+      title: `${period.toUpperCase()} Routine`,
+      eventDate: dateStr,
+      startTime,
+      endTime,
+      category: "Treatment",
+      completed: false,
+      notes: tasks.join(", ")
+    };
+
+    const res = await postDbAction("save_calendar_event", { event: newEvent });
+    if (res && res.success) {
+      setEvents(prev => [...prev, newEvent]);
+      confetti({
+        particleCount: 50,
+        spread: 30,
+        colors: ["#D4AF37", "#FAF7F2"]
+      });
+    }
+  };
 
   const getThemeClasses = () => {
     switch (theme) {
@@ -288,7 +343,7 @@ export default function TeamsSkincareCalendar() {
             onClick={() => navigateTo("/")}
             className={`w-10 h-10 rounded-full bg-gradient-to-tr from-rosevia-gold/30 to-rosevia-rose/30 border border-rosevia-gold/50 flex items-center justify-center font-serif text-xs font-bold ${currentTheme.gold} hover:shadow-lg transition-all shrink-0 cursor-pointer`}
           >
-            RN
+            {getInitials(profile?.name)}
           </button>
         </header>
 
@@ -362,50 +417,23 @@ export default function TeamsSkincareCalendar() {
                 {/* Day Body Content */}
                 <div className="p-3 flex-1 flex flex-col space-y-4">
                   
-                  {/* AM Routine Column Card */}
-                  {amRoutine.length > 0 && (
-                    <div className="bg-rosevia-cream/65 border border-rosevia-rose/15 p-2.5 rounded-xl space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[8px] font-bold text-rosevia-gold uppercase tracking-wider flex items-center">
-                          ☀️ AM Ritual
-                        </span>
-                        <span className="text-[8px] text-rosevia-clay font-bold">{amRoutine.length} Steps</span>
-                      </div>
-                      <div className="space-y-1">
-                        {amRoutine.slice(0, 3).map((item, idx) => (
-                          <div key={idx} className="flex items-center space-x-1.5 text-[9px] text-rosevia-clay font-semibold">
-                            <span className="w-1 h-1 rounded-full bg-rosevia-clay/60" />
-                            <span className="truncate">{item}</span>
-                          </div>
-                        ))}
-                        {amRoutine.length > 3 && (
-                          <p className="text-[8px] text-rosevia-gold font-bold pl-2.5">+{amRoutine.length - 3} more</p>
-                        )}
-                      </div>
-                    </div>
+                  {/* Quick Schedule AM/PM Buttons */}
+                  {amRoutine.length > 0 && !dayEvents.some(e => e.title === "AM Routine") && (
+                    <button
+                      onClick={() => quickScheduleRoutine(day.formatted, "am")}
+                      className="py-2 px-2.5 rounded-xl border border-rosevia-gold/30 hover:border-rosevia-gold hover:bg-rosevia-rose/10 transition-all text-[9px] font-bold text-rosevia-gold uppercase tracking-wider cursor-pointer flex items-center justify-center gap-1 shadow-xs"
+                    >
+                      ☀️ Schedule AM Routine
+                    </button>
                   )}
 
-                  {/* PM Routine Column Card */}
-                  {pmRoutine.length > 0 && (
-                    <div className="bg-rosevia-cream/65 border border-rosevia-rose/15 p-2.5 rounded-xl space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[8px] font-bold text-rosevia-clay uppercase tracking-wider flex items-center">
-                          🌙 PM Ritual
-                        </span>
-                        <span className="text-[8px] text-rosevia-clay font-bold">{pmRoutine.length} Steps</span>
-                      </div>
-                      <div className="space-y-1">
-                        {pmRoutine.slice(0, 3).map((item, idx) => (
-                          <div key={idx} className="flex items-center space-x-1.5 text-[9px] text-rosevia-clay font-semibold">
-                            <span className="w-1 h-1 rounded-full bg-rosevia-clay/60" />
-                            <span className="truncate">{item}</span>
-                          </div>
-                        ))}
-                        {pmRoutine.length > 3 && (
-                          <p className="text-[8px] text-rosevia-gold font-bold pl-2.5">+{pmRoutine.length - 3} more</p>
-                        )}
-                      </div>
-                    </div>
+                  {pmRoutine.length > 0 && !dayEvents.some(e => e.title === "PM Routine") && (
+                    <button
+                      onClick={() => quickScheduleRoutine(day.formatted, "pm")}
+                      className="py-2 px-2.5 rounded-xl border border-rosevia-clay/30 hover:border-rosevia-clay hover:bg-rosevia-rose/10 transition-all text-[9px] font-bold text-rosevia-clay uppercase tracking-wider cursor-pointer flex items-center justify-center gap-1 shadow-xs"
+                    >
+                      🌙 Schedule PM Routine
+                    </button>
                   )}
 
                   {/* Custom scheduled events block */}

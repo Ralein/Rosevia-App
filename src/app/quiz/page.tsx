@@ -22,6 +22,7 @@ export default function SkinQuiz() {
   const [climate, setClimate] = useState("");
   const [age, setAge] = useState("");
   const [experience, setExperience] = useState("");
+  const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [theme, setTheme] = useState("Midnight Jade");
 
@@ -91,6 +92,12 @@ export default function SkinQuiz() {
   const handleSubmit = async () => {
     setLoading(true);
     try {
+      let userId = localStorage.getItem("rosevia_user_id");
+      if (!userId) {
+        userId = `usr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        localStorage.setItem("rosevia_user_id", userId);
+      }
+
       const response = await fetch("/api/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -106,14 +113,39 @@ export default function SkinQuiz() {
       const data = await response.json();
       
       if (data.routine) {
-        localStorage.setItem("rosevia_profile", JSON.stringify({
+        const profileData = {
+          name: name.trim() || "User",
           skinType,
           concerns,
           climate,
           age,
           experience
-        }));
+        };
+
+        localStorage.setItem("rosevia_profile", JSON.stringify(profileData));
         localStorage.setItem("rosevia_routine", JSON.stringify(data.routine));
+
+        // Save profile and routine to database with isolated userId
+        await fetch("/api/db", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "save_profile",
+            userId,
+            profile: profileData
+          })
+        });
+
+        await fetch("/api/db", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "save_routine",
+            userId,
+            routine: data.routine
+          })
+        });
+
         handleRedirect();
       }
     } catch (error) {
@@ -123,7 +155,7 @@ export default function SkinQuiz() {
     }
   };
 
-  const totalSteps = 4;
+  const totalSteps = 5;
 
   return (
     <div className={`min-h-screen ${currentTheme.bg} flex flex-col items-center justify-center p-4 md:p-8 select-none transition-colors duration-500`}>
@@ -185,8 +217,31 @@ export default function SkinQuiz() {
         ) : (
           /* Multi-Step Forms */
           <div className="flex-1 flex flex-col justify-between">
-            {/* Step 1: Skin Type */}
+            {/* Step 1: User Name */}
             {step === 1 && (
+              <div className="space-y-6 animate-fade-in">
+                <div className="text-center md:text-left">
+                  <h2 className={`text-xl md:text-2xl font-serif ${currentTheme.gold}`}>
+                    Welcome to Rosevia. What is your name?
+                  </h2>
+                  <p className={`text-xs ${currentTheme.accent} mt-1 font-semibold`}>
+                    We will personalize your clinical skincare routine and daily diary.
+                  </p>
+                </div>
+                <div className="pt-2">
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Enter your name..."
+                    className="w-full bg-rosevia-sand border border-rosevia-rose/30 rounded-xl p-4 text-sm focus:ring-1 focus:ring-rosevia-gold focus:outline-none placeholder-rosevia-clay/40 font-semibold text-rosevia-charcoal shadow-inner"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Skin Type */}
+            {step === 2 && (
               <div className="space-y-6">
                 <div className="text-center md:text-left">
                   <h2 className={`text-xl md:text-2xl font-serif ${currentTheme.gold}`}>
@@ -225,8 +280,8 @@ export default function SkinQuiz() {
               </div>
             )}
 
-            {/* Step 2: Main Concerns */}
-            {step === 2 && (
+            {/* Step 3: Main Concerns */}
+            {step === 3 && (
               <div className="space-y-6">
                 <div className="text-center md:text-left">
                   <h2 className={`text-xl md:text-2xl font-serif ${currentTheme.gold}`}>
@@ -272,8 +327,8 @@ export default function SkinQuiz() {
               </div>
             )}
 
-            {/* Step 3: Climate */}
-            {step === 3 && (
+            {/* Step 4: Climate */}
+            {step === 4 && (
               <div className="space-y-6">
                 <div className="text-center md:text-left">
                   <h2 className={`text-xl md:text-2xl font-serif ${currentTheme.gold}`}>
@@ -311,8 +366,8 @@ export default function SkinQuiz() {
               </div>
             )}
 
-            {/* Step 4: Age & Experience */}
-            {step === 4 && (
+            {/* Step 5: Age & Experience */}
+            {step === 5 && (
               <div className="space-y-6">
                 <div className="text-center md:text-left">
                   <h2 className={`text-xl md:text-2xl font-serif ${currentTheme.gold}`}>
@@ -384,9 +439,10 @@ export default function SkinQuiz() {
                 <button
                   onClick={() => setStep(step + 1)}
                   disabled={
-                    (step === 1 && !skinType) ||
-                    (step === 2 && concerns.length === 0) ||
-                    (step === 3 && !climate)
+                    (step === 1 && !name.trim()) ||
+                    (step === 2 && !skinType) ||
+                    (step === 3 && concerns.length === 0) ||
+                    (step === 4 && !climate)
                   }
                   className="flex items-center px-5 py-3 rounded-lg text-xs tracking-wider uppercase font-bold bg-rosevia-clay text-rosevia-cream hover:bg-rosevia-gold hover:text-rosevia-cream transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow"
                 >
