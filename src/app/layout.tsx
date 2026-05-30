@@ -16,8 +16,8 @@ export const metadata: Metadata = {
   title: "Rosevia — AI Skincare Companion",
   description: "Intelligent routine scheduling, facial analysis, shelf management, and lifestyle skin intelligence.",
   icons: {
-    icon: "/Logo.png",
-    apple: "/Logo.png",
+    icon: "/icon.png",
+    apple: "/icon.png",
   },
 };
 

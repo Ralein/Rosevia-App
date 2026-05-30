@@ -295,11 +295,6 @@ export default function ThreeSkinSphere() {
       ref={containerRef}
       className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-hidden"
     >
-      {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-[#060D0B]/80 z-20 transition-opacity duration-500">
-          <div className="w-10 h-10 border-2 border-rosevia-gold border-t-transparent rounded-full animate-spin" />
-        </div>
-      )}
       <canvas
         ref={canvasRef}
         className="w-full h-full block opacity-70 transition-opacity duration-1000"
