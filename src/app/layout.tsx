@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -17,7 +17,12 @@ export const metadata: Metadata = {
   description: "Intelligent routine scheduling, facial analysis, shelf management, and lifestyle skin intelligence.",
   icons: {
     icon: "/Logo.png",
+    apple: "/Logo.png",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#FAF7F2",
 };
 
 export default function RootLayout({
