@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Rosevia — AI Skincare Companion",
   description: "Intelligent routine scheduling, facial analysis, shelf management, and lifestyle skin intelligence.",
+  icons: {
+    icon: "/Logo.png",
+  },
 };
 
 export default function RootLayout({
