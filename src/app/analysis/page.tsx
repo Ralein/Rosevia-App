@@ -44,13 +44,19 @@ export default function SkinAnalysis() {
   useEffect(() => {
     const loadData = async () => {
       const dbState = await fetchDbState();
+      let activeProfile = null;
       if (dbState && dbState.profile) {
-        setProfile(dbState.profile);
-        localStorage.setItem("rosevia_profile", JSON.stringify(dbState.profile));
-      } else {
+        activeProfile = dbState.profile;
+        setProfile(activeProfile);
+        localStorage.setItem("rosevia_profile", JSON.stringify(activeProfile));
+      }
+      
+      if (!activeProfile) {
         const savedProfile = localStorage.getItem("rosevia_profile");
         if (savedProfile) {
-          setProfile(JSON.parse(savedProfile));
+          activeProfile = JSON.parse(savedProfile);
+          setProfile(activeProfile);
+          postDbAction("save_profile", { profile: activeProfile });
         } else {
           setProfile({ name: "User", skinType: "Combination", concerns: ["Acne", "Redness"] });
         }

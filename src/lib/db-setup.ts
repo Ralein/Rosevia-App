@@ -8,6 +8,8 @@ export async function setupDatabase() {
       CREATE TABLE IF NOT EXISTS profile (
         id VARCHAR(50) PRIMARY KEY,
         name VARCHAR(255),
+        email VARCHAR(255),
+        streak INTEGER DEFAULT 0,
         skin_type VARCHAR(50),
         concerns JSONB,
         climate VARCHAR(100),
@@ -94,6 +96,8 @@ export async function setupDatabase() {
 
     // Schema Migrations (Add missing columns to existing databases)
     await query(`ALTER TABLE profile ADD COLUMN IF NOT EXISTS name VARCHAR(255)`);
+    await query(`ALTER TABLE profile ADD COLUMN IF NOT EXISTS email VARCHAR(255)`);
+    await query(`ALTER TABLE profile ADD COLUMN IF NOT EXISTS streak INTEGER DEFAULT 0`);
     await query(`ALTER TABLE cabinet ADD COLUMN IF NOT EXISTS user_id VARCHAR(50)`);
     await query(`ALTER TABLE journal ADD COLUMN IF NOT EXISTS user_id VARCHAR(50)`);
     await query(`ALTER TABLE scans ADD COLUMN IF NOT EXISTS user_id VARCHAR(50)`);

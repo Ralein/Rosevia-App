@@ -58,6 +58,8 @@ interface Routine {
 
 interface Profile {
   name?: string;
+  email?: string;
+  streak?: number;
   skinType: string;
   concerns: string[];
   climate: string;
@@ -292,32 +294,42 @@ export default function Home() {
       const dbState = await fetchDbState();
       let activeProfile: Profile | null = null;
       let activeRoutine: Routine | null = null;
+      let activeCabinet = null;
 
       if (dbState) {
         if (dbState.profile) {
           activeProfile = dbState.profile;
           setProfile(activeProfile);
           localStorage.setItem("rosevia_profile", JSON.stringify(activeProfile));
+          if (activeProfile?.streak !== undefined && activeProfile?.streak !== null) {
+            setStreak(activeProfile.streak);
+            localStorage.setItem("rosevia_streak", activeProfile.streak.toString());
+          }
         }
         if (dbState.routine) {
           activeRoutine = dbState.routine;
           setRoutine(activeRoutine);
           localStorage.setItem("rosevia_routine", JSON.stringify(activeRoutine));
         }
-        if (dbState.cabinet) {
-          localStorage.setItem("rosevia_cabinet", JSON.stringify(dbState.cabinet));
-          const tabletItems = dbState.cabinet.filter((p: any) => p.category.toLowerCase() === "tablet");
+        if (dbState.cabinet && dbState.cabinet.length > 0) {
+          activeCabinet = dbState.cabinet;
+          localStorage.setItem("rosevia_cabinet", JSON.stringify(activeCabinet));
+          const tabletItems = activeCabinet.filter((p: any) => p.category.toLowerCase() === "tablet");
           setTablets(tabletItems);
         }
       }
 
-      // If DB is blank, fall back to localStorage migration
+      // If DB was blank or empty for these, try fallback to localStorage migration
       if (!activeProfile) {
         const savedProfile = localStorage.getItem("rosevia_profile");
         if (savedProfile) {
           activeProfile = JSON.parse(savedProfile);
           setProfile(activeProfile);
           postDbAction("save_profile", { profile: activeProfile });
+          if (activeProfile?.streak !== undefined && activeProfile?.streak !== null) {
+            setStreak(activeProfile.streak);
+            localStorage.setItem("rosevia_streak", activeProfile.streak.toString());
+          }
         }
       }
       if (!activeRoutine) {
@@ -328,14 +340,30 @@ export default function Home() {
           postDbAction("save_routine", { routine: activeRoutine });
         }
       }
+      if (!activeCabinet) {
+        const savedCabinet = localStorage.getItem("rosevia_cabinet");
+        if (savedCabinet) {
+          activeCabinet = JSON.parse(savedCabinet);
+          const tabletItems = activeCabinet.filter((p: any) => p.category.toLowerCase() === "tablet");
+          setTablets(tabletItems);
+          if (dbState && (!dbState.cabinet || dbState.cabinet.length === 0)) {
+            activeCabinet.forEach((prod: any) => {
+              postDbAction("save_cabinet_item", { product: prod });
+            });
+          }
+        }
+      }
 
       const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
       const currentDay = days[new Date().getDay()];
       setActiveDay(currentDay);
 
-      const savedStreak = localStorage.getItem("rosevia_streak");
-      if (savedStreak) {
-        setStreak(parseInt(savedStreak));
+      // Only check local storage streak if it wasn't loaded from profile
+      if (activeProfile?.streak === undefined) {
+        const savedStreak = localStorage.getItem("rosevia_streak");
+        if (savedStreak) {
+          setStreak(parseInt(savedStreak));
+        }
       }
 
       const savedReminders = localStorage.getItem("rosevia_reminders");
@@ -524,6 +552,12 @@ export default function Home() {
     const newStreak = streak + 1;
     setStreak(newStreak);
     localStorage.setItem("rosevia_streak", newStreak.toString());
+    if (profile) {
+      const updatedProfile = { ...profile, streak: newStreak };
+      setProfile(updatedProfile);
+      localStorage.setItem("rosevia_profile", JSON.stringify(updatedProfile));
+      postDbAction("save_profile", { profile: updatedProfile });
+    }
   };
 
 

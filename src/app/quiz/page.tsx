@@ -23,6 +23,7 @@ export default function SkinQuiz() {
   const [age, setAge] = useState("");
   const [experience, setExperience] = useState("");
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [theme, setTheme] = useState("Midnight Jade");
 
@@ -115,6 +116,8 @@ export default function SkinQuiz() {
       if (data.routine) {
         const profileData = {
           name: name.trim() || "User",
+          email: email.trim() || "",
+          streak: 0,
           skinType,
           concerns,
           climate,
@@ -217,25 +220,38 @@ export default function SkinQuiz() {
         ) : (
           /* Multi-Step Forms */
           <div className="flex-1 flex flex-col justify-between">
-            {/* Step 1: User Name */}
+            {/* Step 1: User Name & Email */}
             {step === 1 && (
               <div className="space-y-6 animate-fade-in">
                 <div className="text-center md:text-left">
                   <h2 className={`text-xl md:text-2xl font-serif ${currentTheme.gold}`}>
-                    Welcome to Rosevia. What is your name?
+                    Welcome to Rosevia. Introduce yourself.
                   </h2>
                   <p className={`text-xs ${currentTheme.accent} mt-1 font-semibold`}>
-                    We will personalize your clinical skincare routine and daily diary.
+                    We will personalize your clinical skincare routine, daily diary, and sync settings.
                   </p>
                 </div>
-                <div className="pt-2">
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Enter your name..."
-                    className="w-full bg-rosevia-sand border border-rosevia-rose/30 rounded-xl p-4 text-sm focus:ring-1 focus:ring-rosevia-gold focus:outline-none placeholder-rosevia-clay/40 font-semibold text-rosevia-charcoal shadow-inner"
-                  />
+                <div className="space-y-4 pt-2">
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-rosevia-clay/70 font-bold uppercase block">Your Name</label>
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Enter your name..."
+                      className="w-full bg-rosevia-sand border border-rosevia-rose/30 rounded-xl p-4 text-sm focus:ring-1 focus:ring-rosevia-gold focus:outline-none placeholder-rosevia-clay/40 font-semibold text-rosevia-charcoal shadow-inner"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-rosevia-clay/70 font-bold uppercase block">Your Email</label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter your email..."
+                      className="w-full bg-rosevia-sand border border-rosevia-rose/30 rounded-xl p-4 text-sm focus:ring-1 focus:ring-rosevia-gold focus:outline-none placeholder-rosevia-clay/40 font-semibold text-rosevia-charcoal shadow-inner"
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -439,7 +455,7 @@ export default function SkinQuiz() {
                 <button
                   onClick={() => setStep(step + 1)}
                   disabled={
-                    (step === 1 && !name.trim()) ||
+                    (step === 1 && (!name.trim() || !email.trim() || !email.includes("@"))) ||
                     (step === 2 && !skinType) ||
                     (step === 3 && concerns.length === 0) ||
                     (step === 4 && !climate)

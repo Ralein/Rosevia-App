@@ -20,7 +20,7 @@ import {
   Calendar
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { postDbAction } from "@/lib/dbSync";
+import { postDbAction, fetchDbState } from "@/lib/dbSync";
 
 interface Reminders {
   serumTimeAM: string;
@@ -68,12 +68,29 @@ export default function SkincareSettings() {
     setMounted(true);
     
     // Load profile
-    const savedProfile = localStorage.getItem("rosevia_profile");
-    if (savedProfile) {
-      setProfile(JSON.parse(savedProfile));
-    } else {
-      setProfile({ skinType: "Combination", concerns: ["Acne", "Redness"], age: "25-39", experience: "Intermediate" });
-    }
+    const loadData = async () => {
+      const dbState = await fetchDbState();
+      let activeProfile = null;
+
+      if (dbState && dbState.profile) {
+        activeProfile = dbState.profile;
+        setProfile(activeProfile);
+        localStorage.setItem("rosevia_profile", JSON.stringify(activeProfile));
+      }
+
+      if (!activeProfile) {
+        const savedProfile = localStorage.getItem("rosevia_profile");
+        if (savedProfile) {
+          activeProfile = JSON.parse(savedProfile);
+          setProfile(activeProfile);
+          postDbAction("save_profile", { profile: activeProfile });
+        } else {
+          setProfile({ name: "User", skinType: "Combination", concerns: ["Acne", "Redness"], age: "25-39", experience: "Intermediate" });
+        }
+      }
+    };
+
+    loadData();
 
     // Load reminders
     const savedReminders = localStorage.getItem("rosevia_reminders");
@@ -211,8 +228,11 @@ export default function SkincareSettings() {
             </div>
             <div>
               <p className="text-xs font-bold leading-none">Skincare Profile: {profile?.name || "User"}</p>
-              <p className={`text-[9px] ${currentTheme.accent} font-bold uppercase mt-1 tracking-wider`}>
-                Skin Type: {profile.skinType} | Concerns: {profile.concerns.join(", ")}
+              {profile?.email && (
+                <p className="text-[10px] text-rosevia-clay/70 mt-1 font-semibold leading-none">{profile.email}</p>
+              )}
+              <p className={`text-[9px] ${currentTheme.accent} font-bold uppercase mt-1.5 tracking-wider`}>
+                Skin Type: {profile?.skinType} | Concerns: {profile?.concerns?.join(", ") || ""}
               </p>
             </div>
           </div>

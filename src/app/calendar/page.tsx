@@ -90,25 +90,40 @@ export default function TeamsSkincareCalendar() {
     const loadData = async () => {
       const dbState = await fetchDbState();
       
+      let loadedProfile = null;
+      let loadedRoutine = null;
+
       if (dbState) {
         if (dbState.profile) {
-          setProfile(dbState.profile);
-          localStorage.setItem("rosevia_profile", JSON.stringify(dbState.profile));
+          loadedProfile = dbState.profile;
+          setProfile(loadedProfile);
+          localStorage.setItem("rosevia_profile", JSON.stringify(loadedProfile));
         }
         if (dbState.routine) {
-          setRoutine(dbState.routine);
-          localStorage.setItem("rosevia_routine", JSON.stringify(dbState.routine));
+          loadedRoutine = dbState.routine;
+          setRoutine(loadedRoutine);
+          localStorage.setItem("rosevia_routine", JSON.stringify(loadedRoutine));
         }
         if (dbState.calendarEvents) {
           setEvents(dbState.calendarEvents);
         }
-      } else {
-        // Fallback to local storage
+      }
+
+      if (!loadedProfile) {
         const savedProfile = localStorage.getItem("rosevia_profile");
+        if (savedProfile) {
+          const p = JSON.parse(savedProfile);
+          setProfile(p);
+          postDbAction("save_profile", { profile: p });
+        }
+      }
+
+      if (!loadedRoutine) {
         const savedRoutine = localStorage.getItem("rosevia_routine");
-        if (savedProfile && savedRoutine) {
-          setProfile(JSON.parse(savedProfile));
-          setRoutine(JSON.parse(savedRoutine));
+        if (savedRoutine) {
+          const r = JSON.parse(savedRoutine);
+          setRoutine(r);
+          postDbAction("save_routine", { routine: r });
         }
       }
 

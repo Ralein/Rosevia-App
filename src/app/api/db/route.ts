@@ -44,6 +44,8 @@ export async function GET(request: Request) {
     return NextResponse.json({
       profile: profile ? {
         name: profile.name,
+        email: profile.email,
+        streak: profile.streak,
         skinType: profile.skin_type,
         concerns: profile.concerns,
         climate: profile.climate,
@@ -115,13 +117,13 @@ export async function POST(request: Request) {
 
     switch (action) {
       case "save_profile": {
-        const { name, skinType, concerns, climate, age, experience } = body.profile;
+        const { name, email, streak, skinType, concerns, climate, age, experience } = body.profile;
         await query(
-          `INSERT INTO profile (id, name, skin_type, concerns, climate, age, experience, updated_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP)
+          `INSERT INTO profile (id, name, email, streak, skin_type, concerns, climate, age, experience, updated_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP)
            ON CONFLICT (id) DO UPDATE 
-           SET name = $2, skin_type = $3, concerns = $4, climate = $5, age = $6, experience = $7, updated_at = CURRENT_TIMESTAMP`,
-          [userId, name || null, skinType, JSON.stringify(concerns), climate, age, experience]
+           SET name = $2, email = $3, streak = $4, skin_type = $5, concerns = $6, climate = $7, age = $8, experience = $9, updated_at = CURRENT_TIMESTAMP`,
+          [userId, name || null, email || null, streak || 0, skinType, JSON.stringify(concerns), climate, age, experience]
         );
         return NextResponse.json({ success: true });
       }
