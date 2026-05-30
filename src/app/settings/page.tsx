@@ -38,7 +38,13 @@ const getInitials = (name?: string) => {
 
 export default function SkincareSettings() {
   const [mounted, setMounted] = useState(false);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("rosevia_profile");
+      if (saved) return JSON.parse(saved);
+    }
+    return null;
+  });
   const [reminders, setReminders] = useState<Reminders>({
     serumTimeAM: "08:00",
     serumTimePM: "21:30",

@@ -94,8 +94,20 @@ const getInitials = (name?: string) => {
 export default function Home() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [routine, setRoutine] = useState<Routine | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("rosevia_profile");
+      if (saved) return JSON.parse(saved);
+    }
+    return null;
+  });
+  const [routine, setRoutine] = useState<Routine | null>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("rosevia_routine");
+      if (saved) return JSON.parse(saved);
+    }
+    return null;
+  });
   const [activeDay, setActiveDay] = useState<string>("monday");
   const [streak, setStreak] = useState<number>(3);
   const [completedAM, setCompletedAM] = useState<boolean>(false);

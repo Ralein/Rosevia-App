@@ -49,8 +49,20 @@ interface Routine {
 export default function TeamsSkincareCalendar() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [profile, setProfile] = useState<any>(null);
-  const [routine, setRoutine] = useState<Routine | null>(null);
+  const [profile, setProfile] = useState<any>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("rosevia_profile");
+      if (saved) return JSON.parse(saved);
+    }
+    return null;
+  });
+  const [routine, setRoutine] = useState<Routine | null>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("rosevia_routine");
+      if (saved) return JSON.parse(saved);
+    }
+    return null;
+  });
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [theme, setTheme] = useState("Midnight Jade");
   const [reminders, setReminders] = useState({
@@ -363,7 +375,15 @@ export default function TeamsSkincareCalendar() {
         </header>
 
         {/* Teams-style Top Control Bar */}
-        <div className="flex flex-col sm:flex-row justify-between items-center bg-[#111C18]/80 border border-rosevia-rose/25 p-4 rounded-2xl gap-4 shadow-sm">
+        <div className={`flex flex-col sm:flex-row justify-between items-center p-4 rounded-2xl gap-4 shadow-sm border ${
+          theme === "Rose Quartz Luxury"
+            ? "bg-rosevia-rose-dark/85 border-rosevia-rose-light/40"
+            : theme === "Polished Obsidian"
+            ? "bg-neutral-950/80 border-neutral-800"
+            : theme === "Liquid Gold Premium"
+            ? "bg-[#111C18]/85 border-rosevia-gold/50"
+            : "bg-[#111C18]/80 border-rosevia-rose/25"
+        }`}>
           <div className="flex items-center space-x-3">
             <button 
               onClick={handlePrevWeek}
@@ -371,7 +391,11 @@ export default function TeamsSkincareCalendar() {
             >
               <ChevronLeft size={16} />
             </button>
-            <span className="text-sm font-bold text-rosevia-charcoal font-sans select-all">
+            <span className={`text-sm font-bold font-sans select-all ${
+              theme === "Rose Quartz Luxury" || theme === "Polished Obsidian" || theme === "Liquid Gold Premium"
+                ? "text-rosevia-cream"
+                : "text-rosevia-charcoal"
+            }`}>
               {getFormattedWeekRange()}
             </span>
             <button 
@@ -404,26 +428,66 @@ export default function TeamsSkincareCalendar() {
 
             const isToday = new Date().toISOString().split("T")[0] === day.formatted;
 
+            const getDayCardClass = () => {
+              if (isToday) {
+                switch (theme) {
+                  case "Rose Quartz Luxury": return "bg-rosevia-rose-dark/90 border-rosevia-rosegold shadow-md shadow-rosevia-rosegold/10";
+                  case "Polished Obsidian": return "bg-neutral-950/95 border-rosevia-gold shadow-md shadow-rosevia-gold/15";
+                  case "Liquid Gold Premium": return "bg-[#111C18]/95 border-rosevia-gold shadow-md shadow-rosevia-gold/10";
+                  case "Midnight Jade":
+                  default: return "bg-rosevia-sand/90 border-rosevia-gold shadow-md shadow-rosevia-gold/5";
+                }
+              } else {
+                switch (theme) {
+                  case "Rose Quartz Luxury": return "bg-rosevia-rose-dark/45 border-rosevia-rose-light/20";
+                  case "Polished Obsidian": return "bg-neutral-950/30 border-neutral-800";
+                  case "Liquid Gold Premium": return "bg-[#111C18]/45 border-rosevia-gold/10";
+                  case "Midnight Jade":
+                  default: return "bg-rosevia-sand/55 border-rosevia-rose/20";
+                }
+              }
+            };
+
+            const getColHeaderClass = () => {
+              if (isToday) {
+                switch (theme) {
+                  case "Rose Quartz Luxury": return "bg-rosevia-rose-light/40 border-rosevia-rosegold/30";
+                  case "Polished Obsidian": return "bg-neutral-900 border-rosevia-gold/40";
+                  case "Liquid Gold Premium": return "bg-[#172A23] border-rosevia-gold/50";
+                  case "Midnight Jade":
+                  default: return "bg-[#172A23] border-rosevia-gold/30";
+                }
+              } else {
+                switch (theme) {
+                  case "Rose Quartz Luxury": return "bg-rosevia-rose-dark/95 border-rosevia-rose-light/20";
+                  case "Polished Obsidian": return "bg-neutral-950 border-neutral-800";
+                  case "Liquid Gold Premium": return "bg-[#111C18] border-rosevia-gold/25";
+                  case "Midnight Jade":
+                  default: return "bg-[#111C18]/90 border-rosevia-rose/15";
+                }
+              }
+            };
+
             return (
               <div 
                 key={day.name} 
-                className={`flex flex-col rounded-2xl border min-h-[380px] transition-all duration-300 ${
-                  isToday 
-                    ? "bg-rosevia-sand/90 border-rosevia-gold shadow-md shadow-rosevia-gold/5" 
-                    : "bg-rosevia-sand/55 border-rosevia-rose/20"
-                }`}
+                className={`flex flex-col rounded-2xl border min-h-[380px] transition-all duration-300 ${getDayCardClass()}`}
               >
                 {/* Day Header */}
-                <div className={`p-3 rounded-t-2xl border-b flex justify-between items-center ${
-                  isToday 
-                    ? "bg-[#172A23] border-rosevia-gold/30" 
-                    : "bg-[#111C18]/90 border-rosevia-rose/15"
-                }`}>
-                  <span className={`text-[10px] font-bold uppercase tracking-widest ${isToday ? "text-rosevia-gold" : "text-rosevia-clay/80"}`}>
+                <div className={`p-3 rounded-t-2xl border-b flex justify-between items-center ${getColHeaderClass()}`}>
+                  <span className={`text-[10px] font-bold uppercase tracking-widest ${
+                    isToday 
+                      ? (theme === "Rose Quartz Luxury" ? "text-rosevia-rosegold" : "text-rosevia-gold") 
+                      : (theme === "Rose Quartz Luxury" ? "text-rosevia-rose-light" : "text-rosevia-clay/80")
+                  }`}>
                     {day.name.substring(0, 3)}
                   </span>
                   <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                    isToday ? "bg-rosevia-gold text-rosevia-cream" : "text-rosevia-charcoal"
+                    isToday 
+                      ? "bg-rosevia-gold text-rosevia-cream" 
+                      : (theme === "Rose Quartz Luxury" || theme === "Polished Obsidian" || theme === "Liquid Gold Premium"
+                          ? "text-rosevia-cream"
+                          : "text-rosevia-charcoal")
                   }`}>
                     {day.dayNumber}
                   </span>

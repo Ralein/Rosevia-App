@@ -23,7 +23,13 @@ const getInitials = (name?: string) => {
 };
 
 export default function SkinAnalysis() {
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("rosevia_profile");
+      if (saved) return JSON.parse(saved);
+    }
+    return null;
+  });
   const [image, setImage] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
   const [scanStep, setScanStep] = useState(0);
