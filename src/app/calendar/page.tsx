@@ -64,7 +64,12 @@ export default function TeamsSkincareCalendar() {
     return null;
   });
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [theme, setTheme] = useState("Midnight Jade");
+  const [theme, setTheme] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("rosevia_theme") || "Midnight Jade";
+    }
+    return "Midnight Jade";
+  });
   const [reminders, setReminders] = useState({
     serumTimeAM: "08:00",
     serumTimePM: "21:30",
@@ -199,7 +204,14 @@ export default function TeamsSkincareCalendar() {
           button: "bg-rosevia-rose-light text-rosevia-cream hover:bg-rosevia-rosegold",
           glow: "border-rosevia-rosegold/75 shadow-[0_0_20px_rgba(232,193,200,0.2)]",
           colHeader: "bg-rosevia-rose-dark/95 border-rosevia-rose-light/20 text-rosevia-rosegold",
-          teamsBlue: "border-rosevia-rose-light bg-rosevia-rose-dark/70 text-rosevia-rosegold"
+          teamsBlue: "border-rosevia-rose-light bg-rosevia-rose-dark/70 text-rosevia-rosegold",
+          nav: "bg-rosevia-rose-dark/90 backdrop-blur-md border border-rosevia-rose-light/30 shadow-lg",
+          modal: "bg-rosevia-rose-dark/95 border border-rosevia-rose-light/40 shadow-2xl",
+          input: "bg-rosevia-plum border border-rosevia-rose-light/30 focus:border-rosevia-rosegold text-rosevia-charcoal placeholder-rosevia-rose-light/40",
+          secondaryBtn: "bg-rosevia-plum border border-rosevia-rose-light/30 text-rosevia-rose-light hover:text-rosevia-rosegold hover:border-rosevia-rosegold/50",
+          amBtn: "border-rosevia-rosegold/30 hover:border-rosevia-rosegold hover:bg-rosevia-rose-light/10 text-rosevia-rosegold",
+          pmBtn: "border-rosevia-rose-light/30 hover:border-rosevia-rose-light hover:bg-rosevia-rose-light/10 text-rosevia-rose-light",
+          text: "text-rosevia-rosegold"
         };
       case "Polished Obsidian":
         return {
@@ -210,7 +222,14 @@ export default function TeamsSkincareCalendar() {
           button: "bg-neutral-900 border border-neutral-700 hover:border-rosevia-gold text-rosevia-charcoal",
           glow: "border-rosevia-gold/50 shadow-[0_0_15px_rgba(212,175,55,0.06)]",
           colHeader: "bg-neutral-950 border-neutral-800 text-[#E6E8E6]",
-          teamsBlue: "border-rosevia-gold/40 bg-neutral-900 text-rosevia-gold"
+          teamsBlue: "border-rosevia-gold/40 bg-neutral-900 text-rosevia-gold",
+          nav: "bg-neutral-950/90 backdrop-blur-md border border-neutral-800 shadow-lg",
+          modal: "bg-neutral-950/95 border border-neutral-800 shadow-2xl",
+          input: "bg-black border border-neutral-800 focus:border-rosevia-gold text-[#E6E8E6] placeholder-neutral-600",
+          secondaryBtn: "bg-black border border-neutral-800 text-neutral-400 hover:text-rosevia-gold hover:border-rosevia-gold/45",
+          amBtn: "border-rosevia-gold/30 hover:border-rosevia-gold hover:bg-neutral-900 text-rosevia-gold",
+          pmBtn: "border-neutral-700 hover:border-neutral-500 hover:bg-neutral-900 text-neutral-400",
+          text: "text-rosevia-charcoal"
         };
       case "Liquid Gold Premium":
         return {
@@ -221,7 +240,14 @@ export default function TeamsSkincareCalendar() {
           button: "bg-rosevia-gold text-rosevia-cream hover:bg-rosevia-rose",
           glow: "border-rosevia-gold/75 shadow-[0_0_20px_rgba(212,175,55,0.2)]",
           colHeader: "bg-[#111C18] border-rosevia-gold/25 text-rosevia-gold",
-          teamsBlue: "border-rosevia-gold bg-[#111C18] text-rosevia-gold"
+          teamsBlue: "border-rosevia-gold bg-[#111C18] text-rosevia-gold",
+          nav: "bg-[#111C18]/90 backdrop-blur-md border border-rosevia-gold/30 shadow-lg",
+          modal: "bg-[#111C18]/95 border border-rosevia-gold/30 shadow-2xl",
+          input: "bg-[#060D0B] border border-rosevia-gold/25 focus:border-rosevia-gold text-rosevia-charcoal placeholder-rosevia-gold/30",
+          secondaryBtn: "bg-[#060D0B] border border-rosevia-gold/25 text-rosevia-rose hover:text-rosevia-gold hover:border-rosevia-gold/45",
+          amBtn: "border-rosevia-gold/30 hover:border-rosevia-gold hover:bg-[#111C18] text-rosevia-gold",
+          pmBtn: "border-rosevia-rose/30 hover:border-rosevia-rose hover:bg-[#111C18] text-rosevia-rose",
+          text: "text-rosevia-gold"
         };
       case "Midnight Jade":
       default:
@@ -233,7 +259,14 @@ export default function TeamsSkincareCalendar() {
           button: "bg-rosevia-clay text-rosevia-cream hover:bg-rosevia-gold",
           glow: "border-rosevia-rose/30 shadow-xs",
           colHeader: "bg-[#111C18] border-rosevia-rose/20 text-rosevia-clay",
-          teamsBlue: "border-rosevia-gold/45 bg-[#172A23] text-rosevia-gold"
+          teamsBlue: "border-rosevia-gold/45 bg-[#172A23] text-rosevia-gold",
+          nav: "bg-[#111C18]/90 backdrop-blur-md border border-rosevia-rose/30 shadow-lg",
+          modal: "bg-[#111C18]/95 border border-rosevia-rose/30 shadow-2xl",
+          input: "bg-rosevia-cream border border-rosevia-rose/30 focus:border-rosevia-gold text-rosevia-charcoal placeholder-rosevia-clay/40",
+          secondaryBtn: "bg-rosevia-cream border border-rosevia-rose/25 text-rosevia-clay hover:text-rosevia-gold hover:border-rosevia-gold/45",
+          amBtn: "border-rosevia-gold/30 hover:border-rosevia-gold hover:bg-rosevia-rose/10 text-rosevia-gold",
+          pmBtn: "border-rosevia-clay/30 hover:border-rosevia-clay hover:bg-rosevia-rose/10 text-rosevia-clay",
+          text: "text-rosevia-charcoal"
         };
     }
   };
@@ -351,7 +384,9 @@ export default function TeamsSkincareCalendar() {
     return `${startMonth} ${currentWeekStart.getDate()} - ${endMonth} ${end.getDate()}, ${year}`;
   };
 
-  if (!mounted) return null;
+  if (!mounted) {
+    return <div className={`min-h-screen ${currentTheme.bg}`} />;
+  }
 
   return (
     <div className={`min-h-screen ${currentTheme.bg} pb-28 select-none transition-colors duration-500`}>
@@ -375,32 +410,20 @@ export default function TeamsSkincareCalendar() {
         </header>
 
         {/* Teams-style Top Control Bar */}
-        <div className={`flex flex-col sm:flex-row justify-between items-center p-4 rounded-2xl gap-4 shadow-sm border ${
-          theme === "Rose Quartz Luxury"
-            ? "bg-rosevia-rose-dark/85 border-rosevia-rose-light/40"
-            : theme === "Polished Obsidian"
-            ? "bg-neutral-950/80 border-neutral-800"
-            : theme === "Liquid Gold Premium"
-            ? "bg-[#111C18]/85 border-rosevia-gold/50"
-            : "bg-[#111C18]/80 border-rosevia-rose/25"
-        }`}>
+        <div className={`flex flex-col sm:flex-row justify-between items-center p-4 rounded-2xl gap-4 shadow-sm ${currentTheme.card}`}>
           <div className="flex items-center space-x-3">
             <button 
               onClick={handlePrevWeek}
-              className="p-2 rounded-xl bg-rosevia-cream border border-rosevia-rose/20 text-rosevia-clay hover:text-rosevia-gold hover:border-rosevia-gold/45 cursor-pointer"
+              className={`p-2 rounded-xl cursor-pointer transition-all ${currentTheme.secondaryBtn}`}
             >
               <ChevronLeft size={16} />
             </button>
-            <span className={`text-sm font-bold font-sans select-all ${
-              theme === "Rose Quartz Luxury" || theme === "Polished Obsidian" || theme === "Liquid Gold Premium"
-                ? "text-rosevia-cream"
-                : "text-rosevia-charcoal"
-            }`}>
+            <span className={`text-sm font-bold font-sans select-all ${currentTheme.text}`}>
               {getFormattedWeekRange()}
             </span>
             <button 
               onClick={handleNextWeek}
-              className="p-2 rounded-xl bg-rosevia-cream border border-rosevia-rose/20 text-rosevia-clay hover:text-rosevia-gold hover:border-rosevia-gold/45 cursor-pointer"
+              className={`p-2 rounded-xl cursor-pointer transition-all ${currentTheme.secondaryBtn}`}
             >
               <ChevronRight size={16} />
             </button>
@@ -484,9 +507,13 @@ export default function TeamsSkincareCalendar() {
                   </span>
                   <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                     isToday 
-                      ? "bg-rosevia-gold text-rosevia-cream" 
-                      : (theme === "Rose Quartz Luxury" || theme === "Polished Obsidian" || theme === "Liquid Gold Premium"
-                          ? "text-rosevia-cream"
+                      ? "bg-rosevia-gold text-rosevia-cream shadow" 
+                      : (theme === "Rose Quartz Luxury" 
+                          ? "text-rosevia-rosegold" 
+                          : theme === "Polished Obsidian" 
+                          ? "text-neutral-300" 
+                          : theme === "Liquid Gold Premium" 
+                          ? "text-rosevia-gold" 
                           : "text-rosevia-charcoal")
                   }`}>
                     {day.dayNumber}
@@ -500,7 +527,7 @@ export default function TeamsSkincareCalendar() {
                   {amRoutine.length > 0 && !dayEvents.some(e => e.title === "AM Routine") && (
                     <button
                       onClick={() => quickScheduleRoutine(day.formatted, "am")}
-                      className="py-2 px-2.5 rounded-xl border border-rosevia-gold/30 hover:border-rosevia-gold hover:bg-rosevia-rose/10 transition-all text-[9px] font-bold text-rosevia-gold uppercase tracking-wider cursor-pointer flex items-center justify-center gap-1 shadow-xs"
+                      className={`py-2 px-2.5 rounded-xl border transition-all text-[9px] font-bold uppercase tracking-wider cursor-pointer flex items-center justify-center gap-1 shadow-xs ${currentTheme.amBtn}`}
                     >
                       ☀️ Schedule AM Routine
                     </button>
@@ -509,7 +536,7 @@ export default function TeamsSkincareCalendar() {
                   {pmRoutine.length > 0 && !dayEvents.some(e => e.title === "PM Routine") && (
                     <button
                       onClick={() => quickScheduleRoutine(day.formatted, "pm")}
-                      className="py-2 px-2.5 rounded-xl border border-rosevia-clay/30 hover:border-rosevia-clay hover:bg-rosevia-rose/10 transition-all text-[9px] font-bold text-rosevia-clay uppercase tracking-wider cursor-pointer flex items-center justify-center gap-1 shadow-xs"
+                      className={`py-2 px-2.5 rounded-xl border transition-all text-[9px] font-bold uppercase tracking-wider cursor-pointer flex items-center justify-center gap-1 shadow-xs ${currentTheme.pmBtn}`}
                     >
                       🌙 Schedule PM Routine
                     </button>
@@ -582,17 +609,17 @@ export default function TeamsSkincareCalendar() {
       {/* Teams-style Event Scheduler Form Modal */}
       {showEventModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="w-full max-w-md glass-panel p-6 rounded-2xl relative shadow-xl space-y-4">
+          <div className={`w-full max-w-md p-6 rounded-2xl relative shadow-xl space-y-4 ${currentTheme.modal}`}>
             
             {/* Modal Header */}
-            <div className="flex justify-between items-center border-b border-rosevia-rose/20 pb-3">
+            <div className={`flex justify-between items-center border-b pb-3 ${theme === "Rose Quartz Luxury" ? "border-rosevia-rose-light/20" : "border-rosevia-rose/20"}`}>
               <div className="flex items-center space-x-2">
-                <Calendar size={16} className="text-rosevia-gold" />
+                <Calendar size={16} className={`${currentTheme.gold}`} />
                 <h3 className="text-xs font-bold tracking-widest uppercase text-rosevia-charcoal">Schedule Skincare Event</h3>
               </div>
               <button 
                 onClick={() => setShowEventModal(false)}
-                className="text-rosevia-clay hover:text-rosevia-gold transition-all cursor-pointer"
+                className={`transition-all cursor-pointer ${theme === "Rose Quartz Luxury" ? "text-rosevia-rose-light hover:text-rosevia-rosegold" : "text-rosevia-clay hover:text-rosevia-gold"}`}
               >
                 <X size={16} />
               </button>
@@ -601,72 +628,72 @@ export default function TeamsSkincareCalendar() {
             {/* Event Form */}
             <form onSubmit={handleCreateEvent} className="space-y-4">
               <div className="space-y-1">
-                <label className="text-[10px] text-rosevia-clay/70 font-bold uppercase block">Event Title</label>
+                <label className={`text-[10px] font-bold uppercase block opacity-80 ${currentTheme.accent}`}>Event Title</label>
                 <input 
                   type="text" 
                   required
                   placeholder="e.g. Clay Mask, Chemical Peel, Laser Appointment"
                   value={eventTitle}
                   onChange={(e) => setEventTitle(e.target.value)}
-                  className="w-full bg-rosevia-sand border border-rosevia-rose/30 rounded-xl px-3 py-2.5 text-xs text-rosevia-charcoal font-semibold focus:outline-none focus:border-rosevia-gold"
+                  className={`w-full rounded-xl px-3 py-2.5 text-xs font-semibold focus:outline-none ${currentTheme.input}`}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] text-rosevia-clay/70 font-bold uppercase block">Date</label>
+                  <label className={`text-[10px] font-bold uppercase block opacity-80 ${currentTheme.accent}`}>Date</label>
                   <input 
                     type="date" 
                     required
                     value={eventDate}
                     onChange={(e) => setEventDate(e.target.value)}
-                    className="w-full bg-rosevia-sand border border-rosevia-rose/30 rounded-xl px-3 py-2 text-xs text-rosevia-charcoal font-semibold focus:outline-none focus:border-rosevia-gold"
+                    className={`w-full rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none ${currentTheme.input}`}
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] text-rosevia-clay/70 font-bold uppercase block">Category</label>
+                  <label className={`text-[10px] font-bold uppercase block opacity-80 ${currentTheme.accent}`}>Category</label>
                   <select 
                     value={eventCategory}
                     onChange={(e) => setEventCategory(e.target.value)}
-                    className="w-full bg-rosevia-sand border border-rosevia-rose/30 rounded-xl px-3 py-2 text-xs text-rosevia-charcoal font-semibold focus:outline-none focus:border-rosevia-gold cursor-pointer"
+                    className={`w-full rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none cursor-pointer ${currentTheme.input}`}
                   >
-                    <option value="Treatment">Treatment</option>
-                    <option value="Mask">Sheet/Clay Mask</option>
-                    <option value="Exfoliation">Exfoliation</option>
-                    <option value="Consultation">Consultation</option>
-                    <option value="Other">Other</option>
+                    <option value="Treatment" className="bg-rosevia-cream text-rosevia-charcoal">Treatment</option>
+                    <option value="Mask" className="bg-rosevia-cream text-rosevia-charcoal">Sheet/Clay Mask</option>
+                    <option value="Exfoliation" className="bg-rosevia-cream text-rosevia-charcoal">Exfoliation</option>
+                    <option value="Consultation" className="bg-rosevia-cream text-rosevia-charcoal">Consultation</option>
+                    <option value="Other" className="bg-rosevia-cream text-rosevia-charcoal">Other</option>
                   </select>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] text-rosevia-clay/70 font-bold uppercase block">Start Time</label>
+                  <label className={`text-[10px] font-bold uppercase block opacity-80 ${currentTheme.accent}`}>Start Time</label>
                   <input 
                     type="time" 
                     value={eventStartTime}
                     onChange={(e) => setEventStartTime(e.target.value)}
-                    className="w-full bg-rosevia-sand border border-rosevia-rose/30 rounded-xl px-3 py-2 text-xs text-rosevia-charcoal font-semibold focus:outline-none focus:border-rosevia-gold"
+                    className={`w-full rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none ${currentTheme.input}`}
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] text-rosevia-clay/70 font-bold uppercase block">End Time</label>
+                  <label className={`text-[10px] font-bold uppercase block opacity-80 ${currentTheme.accent}`}>End Time</label>
                   <input 
                     type="time" 
                     value={eventEndTime}
                     onChange={(e) => setEventEndTime(e.target.value)}
-                    className="w-full bg-rosevia-sand border border-rosevia-rose/30 rounded-xl px-3 py-2 text-xs text-rosevia-charcoal font-semibold focus:outline-none focus:border-rosevia-gold"
+                    className={`w-full rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none ${currentTheme.input}`}
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] text-rosevia-clay/70 font-bold uppercase block">Event Notes</label>
+                <label className={`text-[10px] font-bold uppercase block opacity-80 ${currentTheme.accent}`}>Event Notes</label>
                 <textarea 
                   placeholder="Notes, chemical concentrations, prep details..."
                   value={eventNotes}
                   onChange={(e) => setEventNotes(e.target.value)}
-                  className="w-full h-16 bg-rosevia-sand border border-rosevia-rose/30 rounded-xl p-3 text-xs text-rosevia-charcoal font-semibold focus:outline-none focus:border-rosevia-gold resize-none"
+                  className={`w-full h-16 rounded-xl p-3 text-xs font-semibold focus:outline-none resize-none ${currentTheme.input}`}
                 />
               </div>
 
@@ -682,52 +709,52 @@ export default function TeamsSkincareCalendar() {
       )}
 
       {/* FLOATING BOTTOM PREMIUM NAVIGATION DOCK (BALANCED FOR 7 ITEMS) */}
-      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-lg glass-panel py-3 px-4 rounded-2xl flex justify-between items-center shadow-lg border border-rosevia-rose/40 z-50">
+      <nav className={`fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-lg py-3 px-4 rounded-2xl flex justify-between items-center shadow-lg backdrop-blur-md z-50 ${currentTheme.nav}`}>
         <button 
           onClick={() => navigateTo("/")}
-          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
+          className={`flex flex-col items-center ${theme === "Rose Quartz Luxury" ? "text-rosevia-rosegold/60 hover:text-rosevia-rosegold" : "text-rosevia-clay hover:text-rosevia-gold"} shrink-0 cursor-pointer`}
         >
           <Layers size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Home</span>
         </button>
         <button 
           onClick={() => navigateTo("/analysis")}
-          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
+          className={`flex flex-col items-center ${theme === "Rose Quartz Luxury" ? "text-rosevia-rosegold/60 hover:text-rosevia-rosegold" : "text-rosevia-clay hover:text-rosevia-gold"} shrink-0 cursor-pointer`}
         >
           <Activity size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Scan</span>
         </button>
         <button 
           onClick={() => navigateTo("/cabinet")}
-          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
+          className={`flex flex-col items-center ${theme === "Rose Quartz Luxury" ? "text-rosevia-rosegold/60 hover:text-rosevia-rosegold" : "text-rosevia-clay hover:text-rosevia-gold"} shrink-0 cursor-pointer`}
         >
           <FolderHeart size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Cabinet</span>
         </button>
         <button 
           onClick={() => navigateTo("/checker")}
-          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
+          className={`flex flex-col items-center ${theme === "Rose Quartz Luxury" ? "text-rosevia-rosegold/60 hover:text-rosevia-rosegold" : "text-rosevia-clay hover:text-rosevia-gold"} shrink-0 cursor-pointer`}
         >
           <AlertCircle size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Checker</span>
         </button>
         <button 
           onClick={() => navigateTo("/calendar")}
-          className="flex flex-col items-center text-rosevia-gold shrink-0 cursor-pointer animate-none"
+          className={`flex flex-col items-center ${theme === "Rose Quartz Luxury" ? "text-rosevia-rosegold" : "text-rosevia-gold"} shrink-0 cursor-pointer animate-none`}
         >
           <Calendar size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Calendar</span>
         </button>
         <button 
           onClick={() => navigateTo("/journal")}
-          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
+          className={`flex flex-col items-center ${theme === "Rose Quartz Luxury" ? "text-rosevia-rosegold/60 hover:text-rosevia-rosegold" : "text-rosevia-clay hover:text-rosevia-gold"} shrink-0 cursor-pointer animate-none`}
         >
           <BookOpen size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Diary</span>
         </button>
         <button 
           onClick={() => navigateTo("/settings")}
-          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer animate-none"
+          className={`flex flex-col items-center ${theme === "Rose Quartz Luxury" ? "text-rosevia-rosegold/60 hover:text-rosevia-rosegold" : "text-rosevia-clay hover:text-rosevia-gold"} shrink-0 cursor-pointer animate-none`}
         >
           <Settings size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Settings</span>

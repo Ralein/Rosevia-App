@@ -43,7 +43,12 @@ export default function SkinJournal() {
   const [isLogged, setIsLogged] = useState(false);
   const [insights, setInsights] = useState<InsightItem[] | null>(null);
   const [loadingInsights, setLoadingInsights] = useState(false);
-  const [theme, setTheme] = useState("Midnight Jade");
+  const [theme, setTheme] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("rosevia_theme") || "Midnight Jade";
+    }
+    return "Midnight Jade";
+  });
   const [profileName, setProfileName] = useState("");
 
   const router = useRouter();
@@ -426,52 +431,56 @@ export default function SkinJournal() {
 
       </div>
 
-      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-lg glass-panel py-3 px-4 rounded-2xl flex justify-between items-center shadow-lg border border-rosevia-rose/40 z-50">
+      <nav className={`fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-lg py-3 px-4 rounded-2xl flex justify-between items-center shadow-lg backdrop-blur-md z-50 ${
+        theme === "Rose Quartz Luxury"
+          ? "bg-rosevia-rose-dark/90 border border-rosevia-rose-light/30 text-rosevia-charcoal"
+          : "bg-[#060D0B]/88 border border-rosevia-gold/20 text-rosevia-charcoal"
+      }`}>
         <button 
           onClick={() => navigateTo("/")}
-          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
+          className={`flex flex-col items-center ${theme === "Rose Quartz Luxury" ? "text-rosevia-rosegold/60 hover:text-rosevia-rosegold" : "text-rosevia-clay hover:text-rosevia-gold"} shrink-0 cursor-pointer`}
         >
           <Layers size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Home</span>
         </button>
         <button 
           onClick={() => navigateTo("/analysis")}
-          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
+          className={`flex flex-col items-center ${theme === "Rose Quartz Luxury" ? "text-rosevia-rosegold/60 hover:text-rosevia-rosegold" : "text-rosevia-clay hover:text-rosevia-gold"} shrink-0 cursor-pointer`}
         >
           <Activity size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Scan</span>
         </button>
         <button 
           onClick={() => navigateTo("/cabinet")}
-          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
+          className={`flex flex-col items-center ${theme === "Rose Quartz Luxury" ? "text-rosevia-rosegold/60 hover:text-rosevia-rosegold" : "text-rosevia-clay hover:text-rosevia-gold"} shrink-0 cursor-pointer`}
         >
           <FolderHeart size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Cabinet</span>
         </button>
         <button 
           onClick={() => navigateTo("/checker")}
-          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
+          className={`flex flex-col items-center ${theme === "Rose Quartz Luxury" ? "text-rosevia-rosegold/60 hover:text-rosevia-rosegold" : "text-rosevia-clay hover:text-rosevia-gold"} shrink-0 cursor-pointer`}
         >
           <AlertCircle size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Checker</span>
         </button>
         <button 
           onClick={() => navigateTo("/calendar")}
-          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer"
+          className={`flex flex-col items-center ${theme === "Rose Quartz Luxury" ? "text-rosevia-rosegold/60 hover:text-rosevia-rosegold" : "text-rosevia-clay hover:text-rosevia-gold"} shrink-0 cursor-pointer`}
         >
           <Calendar size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Calendar</span>
         </button>
         <button 
           onClick={() => navigateTo("/journal")}
-          className="flex flex-col items-center text-rosevia-gold shrink-0 cursor-pointer"
+          className={`flex flex-col items-center ${theme === "Rose Quartz Luxury" ? "text-rosevia-rosegold" : "text-rosevia-gold"} shrink-0 cursor-pointer`}
         >
           <BookOpen size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Diary</span>
         </button>
         <button 
           onClick={() => navigateTo("/settings")}
-          className="flex flex-col items-center text-rosevia-clay hover:text-rosevia-gold shrink-0 cursor-pointer animate-none"
+          className={`flex flex-col items-center ${theme === "Rose Quartz Luxury" ? "text-rosevia-rosegold/60 hover:text-rosevia-rosegold" : "text-rosevia-clay hover:text-rosevia-gold"} shrink-0 cursor-pointer`}
         >
           <Settings size={18} />
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Settings</span>
